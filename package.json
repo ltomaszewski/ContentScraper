@@ -1,0 +1,20 @@
+{
+  "name": "contentfetcher",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/rethinkdb": "^2.3.19",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "fetch": "^1.1.0",
+    "puppeteer": "^21.4.1",
+    "rethinkdb": "^2.4.2"
+  }
+}
