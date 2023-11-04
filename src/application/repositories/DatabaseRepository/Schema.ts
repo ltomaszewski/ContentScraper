@@ -1,6 +1,6 @@
 import * as r from 'rethinkdb';
 import { DatabaseRepository } from './DatabaseRepository';
-import { SampleEntity } from '../../../application/entities/SampleEntity';
+import { ContentLinkConfiguration } from '../../entities/ContentLinkConfiguration';
 
 // Schema - responsible for database schema migration
 export class Schema {
@@ -14,11 +14,11 @@ export class Schema {
 
     async updateSchemaIfNeeded(dropAllFirst: boolean = false) {
         if (dropAllFirst) {
-            await this.databaseRepository.dropTableIfExists(this.databaseName, SampleEntity.Schema.name)
+            await this.databaseRepository.dropTableIfExists(this.databaseName, ContentLinkConfiguration.Schema.name)
             await this.databaseRepository.dropDatabaseIfExists(this.databaseName)
         }
 
         await this.databaseRepository.createDatabaseIfNotExists(this.databaseName)
-        await this.databaseRepository.createTableIfNotExists(this.databaseName, SampleEntity.Schema.name)
+        await this.databaseRepository.createTableIfNotExists(this.databaseName, ContentLinkConfiguration.Schema.name)
     }
 }
