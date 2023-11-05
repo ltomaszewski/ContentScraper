@@ -2,7 +2,6 @@ import { ContentLinkConfiguration } from "../entities/ContentLinkConfiguration";
 import { Repository } from "../interfaces/Repository";
 import { DatabaseRepository } from "./DatabaseRepository/DatabaseRepository";
 
-// SampleEntityRepository - Repository class for SampleEntity
 export class ContentLinkConfigurationRepository implements Repository<ContentLinkConfiguration> {
     private databaseRepository: DatabaseRepository
     private databaseName: string

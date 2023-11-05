@@ -5,30 +5,29 @@ export class ContentLinkConfiguration {
         name: "ContentLinkConfiguration",
         properties: {
             id: 'id',
-            linkPrefix: 'linkPrefix',
+            urlPrefix: 'urlPrefix',
             xpath: 'xpath'
         },
     };
     readonly id: number
-    readonly linkPrefix: string
+    readonly urlPrefix: string
     readonly xpath: string
 
-
-    constructor(id: number, linkPrefix: string, xpath: string) {
+    constructor(id: number, urlPrefix: string, xpath: string) {
         this.id = id
-        this.linkPrefix = linkPrefix
+        this.urlPrefix = urlPrefix
         this.xpath = xpath
     }
 
     static createFromObject(obj: any): ContentLinkConfiguration {
         const id = obj.id;
-        const linkPrefix = obj.linkPrefix;
+        const urlPrefix = obj.urlPrefix;
         const xpath = obj.xpath;
-        return new ContentLinkConfiguration(id, linkPrefix, xpath);
+        return new ContentLinkConfiguration(id, urlPrefix, xpath);
     }
 
     static createFromDTO(dto: ContentLinkConfigurationDTO, newId: number): ContentLinkConfiguration {
-        return new ContentLinkConfiguration(newId, dto.linkPrefix, dto.xpath);
+        return new ContentLinkConfiguration(newId, dto.urlPrefix, dto.xpath);
     }
 
     static findMaxId(sources: ContentLinkConfiguration[]): number {

@@ -9,7 +9,6 @@ export class ContentLinkConfigurationRESTService {
         this.contentLinkConfigurationService = contentLinkConfigurationService;
     }
 
-
     installEndpoints(basePath: string, app: express.Application) {
         // Add a source to the database
         app.post(basePath + "/contentLinkConfiguration/add", async (req, res) => {
@@ -43,5 +42,4 @@ export class ContentLinkConfigurationRESTService {
             res.json(contentLinkConfigurations);
         });
     }
-
 }

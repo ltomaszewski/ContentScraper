@@ -11,8 +11,8 @@ export class ContentLinkConfigurationService {
 
     async insert(dto: ContentLinkConfigurationDTO) {
         const configurations = await this.contentLinkConfigurationRepository.getAll();
-        if ((await configurations).find(x => x.linkPrefix === dto.linkPrefix)) {
-            throw Error(`Content Link Configuration already exists with linkPrefix ${dto.linkPrefix}`);
+        if ((await configurations).find(x => x.urlPrefix === dto.urlPrefix)) {
+            throw Error(`Content Link Configuration already exists with linkPrefix ${dto.urlPrefix}`);
         }
         const newId = ContentLinkConfiguration.createNewId(configurations);
         const entity = ContentLinkConfiguration.createFromDTO(dto, newId);

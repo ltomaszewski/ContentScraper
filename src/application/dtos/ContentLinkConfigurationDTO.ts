@@ -1,18 +1,18 @@
 export class ContentLinkConfigurationDTO {
     readonly id: number | undefined;
-    readonly linkPrefix: string;
+    readonly urlPrefix: string;
     readonly xpath: string;
 
-    constructor(id: number | undefined, linkPrefix: string, xpath: string) {
+    constructor(id: number | undefined, urlPrefix: string, xpath: string) {
         this.id = id;
-        this.linkPrefix = linkPrefix;
+        this.urlPrefix = urlPrefix;
         this.xpath = xpath;
     }
 
     static createFromObject(obj: any): ContentLinkConfigurationDTO {
         const id = obj.id;
-        const linkPrefix = obj.linkPrefix;
+        const urlPrefix = obj.urlPrefix;
         const xpath = obj.xpath;
-        return new ContentLinkConfigurationDTO(id, linkPrefix, xpath);
+        return new ContentLinkConfigurationDTO(id, urlPrefix, xpath);
     }
 }
