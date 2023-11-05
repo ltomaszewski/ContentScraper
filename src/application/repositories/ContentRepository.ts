@@ -23,6 +23,13 @@ export class ContentRepository implements Repository<Content> {
         return hasEntity;
     }
 
+    async checkIfEntityWithBaseUrlExists(url: string): Promise<boolean> {
+        const result = (await this.databaseRepository.query(this.databaseName, Content.Schema.name, function (table) { return table.filter({ baseUrl: url }); }));
+        const hasEntity = (await result.toArray()).length > 0;
+        result.close()
+        return hasEntity;
+    }
+
     async getTheNewestEntity(): Promise<Content | undefined> {
         try {
             const result = (await this.databaseRepository.query(this.databaseName, Content.Schema.name, function (table) { return table.orderBy({ index: r.desc('id') }).limit(1); }));

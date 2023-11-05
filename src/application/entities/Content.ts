@@ -11,6 +11,7 @@ export class Content {
             status: 'status',
             content: 'content',
             url: 'url',
+            baseUrl: 'baseUrl',
             errors: 'errors'
         },
     };
@@ -20,7 +21,8 @@ export class Content {
     readonly relatedTweetId: number
     readonly status: ContentStatus
     readonly content: string
-    readonly url: string
+    readonly baseUrl: string // Added: to hold base url for future processing
+    readonly url: string | undefined // Added: To save url after redirection of baseUrl, can be nil if there is no redirection
     readonly errors: string[]
 
 
@@ -31,7 +33,8 @@ export class Content {
         relatedTweetId: number,
         status: ContentStatus,
         content: string,
-        url: string,
+        baseUrl: string,
+        url: string | undefined,
         errors: string[]
     ) {
         this.id = id;
@@ -40,6 +43,7 @@ export class Content {
         this.relatedTweetId = relatedTweetId;
         this.status = status;
         this.content = content;
+        this.baseUrl = baseUrl;
         this.url = url;
         this.errors = errors;
     }
@@ -51,13 +55,14 @@ export class Content {
         const relatedTweetId = obj.relatedTweetId;
         const status = obj.status;
         const content = obj.content;
+        const baseUrl = obj.baseUrl;
         const url = obj.url;
         const errors = obj.errors;
-        return new Content(id, id_configuration, relatedNewsId, relatedTweetId, status, content, url, errors);
+        return new Content(id, id_configuration, relatedNewsId, relatedTweetId, status, content, baseUrl, url, errors);
     }
 
     static createFromDTO(dto: ContentDTO, newId: number): Content {
-        return new Content(newId, dto.id_configuration, dto.relatedNewsId, dto.relatedTweetId, dto.status, dto.content, dto.url, dto.errors);
+        return new Content(newId, dto.id_configuration, dto.relatedNewsId, dto.relatedTweetId, dto.status, dto.content, dto.baseUrl, dto.url, dto.errors);
     }
 }
 

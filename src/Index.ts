@@ -66,7 +66,7 @@ console.log("Application started with configuration: " + configuration.arg1 + ",
     const newUrl = await getGoogleNewsArticleUrl(googleNewsUrl);
     const content = await extractDataFromURLViaPuppeteer(newUrl, '//*[@id="article-0"]/section');
     if (content) {
-        const contentDTO = new ContentDTO(-1, -1, -1, ContentStatus.ready, content, newUrl, []);
+        const contentDTO = new ContentDTO(-1, -1, -1, ContentStatus.ready, content, googleNewsUrl, newUrl, []);
         contentService.insert(contentDTO);
     } else {
         throw new Error("Failed to extract content from URL");

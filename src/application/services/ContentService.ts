@@ -10,10 +10,13 @@ export class ContentService {
     }
 
     async insert(dto: ContentDTO) {
-        const hasAlreadyContentWithTheSameDTO = await this.contentRepository.checkIfEntityWithUrlExists(dto.url);
-        if (hasAlreadyContentWithTheSameDTO) {
-            throw new Error('Content with same URL already exists');
+        if (dto.baseUrl) {
+            const hasAlreadyContentWithTheSameDTO = await this.contentRepository.checkIfEntityWithBaseUrlExists(dto.baseUrl);
+            if (hasAlreadyContentWithTheSameDTO) {
+                throw new Error('Content with same URL already exists');
+            }
         }
+
         const theNewestEntity = (await this.contentRepository.getTheNewestEntity())
         let newId
         if (theNewestEntity) {
