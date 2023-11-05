@@ -23,6 +23,16 @@ export class NewsAggregatorDatabase {
         return sampleEntities
     }
 
+    async tweetsWithForLoop(forLoop: (tweet: Tweet) => void) {
+        const result = (await this.databaseRepository.query(this.databaseName, Tweet.Schema.name, function (table) { return table }))
+        while (result.hasNext) {
+            const nextEntity = await result.next()
+            const nextTweet = Tweet.createFromObject(nextEntity)
+            forLoop(nextTweet)
+        }
+        result.close()
+    }
+
     async news(): Promise<News[]> {
         const result = (await this.databaseRepository.query(this.databaseName, News.Schema.name, function (table) { return table }))
         const rawResult = await result.toArray()
