@@ -12,3 +12,4 @@ export const DatabasePort = 28015;
 export const DatabaseForceDrop = true;
 
 export const baseDatabaseName = "CONTENT_FETCHER";
+export const baseNewsAggregatorDatabaseName = "NEWS_AGGREGATOR";

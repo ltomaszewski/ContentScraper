@@ -20,10 +20,12 @@ export class DatabaseRepository {
     }
 
     // connect - establishes a connection to the RethinkDB server
-    async connect(databaseName: string) {
+    async connect(databaseName: string, updateSchema: boolean = true) {
         this.conn = await r.connect({ host: this.host, port: this.port })
-        const schema = new Schema(databaseName, this)
-        await schema.updateSchemaIfNeeded(this.forceDrop)
+        if (updateSchema) {
+            const schema = new Schema(databaseName, this)
+            await schema.updateSchemaIfNeeded(this.forceDrop)
+        }
     }
 
     // closeConnection - closes the RethinkDB connection

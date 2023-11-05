@@ -16,6 +16,7 @@ import { getGoogleNewsArticleUrl } from "./application/helpers/GoogleUtils";
 import { extractDataFromURLViaPuppeteer } from "./application/helpers/WebSiteDataExtracter";
 import { ContentDTO } from "./application/dtos/ContentDTO";
 import { ContentStatus } from "./application/entities/Content";
+import { NewsAggregatorDatabase } from "./application/services/NewsAggregatorDatabase";
 
 // Extracting command line arguments
 const args = process.argv;
@@ -33,8 +34,12 @@ console.log("Application started with configuration: " + configuration.arg1 + ",
     // Creating DatabaseRepository instance for database connection
     const databaseRepository = new DatabaseRepository(DatabaseHost, DatabasePort, DatabaseForceDrop);
 
+    //Create NewsAggregatorDatabase Repository for access data
+    const newsAggregatorDatabase = new NewsAggregatorDatabase();
+
     // Establishing connection to the specified database
     await databaseRepository.connect(databaseName);
+    await newsAggregatorDatabase.connect();
 
     // Creating all repositories and services
     const contentLinkConfigurationRepository = new ContentLinkConfigurationRepository(databaseRepository, databaseName);
@@ -62,14 +67,19 @@ console.log("Application started with configuration: " + configuration.arg1 + ",
         console.log(`REST server is running on port ${PORT}`);
     });
 
-    const googleNewsUrl = "https://news.google.com/rss/articles/CBMiO2h0dHBzOi8vd3d3LmNic25ld3MuY29tL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv0gE_aHR0cHM6Ly93d3cuY2JzbmV3cy5jb20vYW1wL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv?oc=5";
-    const newUrl = await getGoogleNewsArticleUrl(googleNewsUrl);
-    const content = await extractDataFromURLViaPuppeteer(newUrl, '//*[@id="article-0"]/section');
-    if (content) {
-        const contentDTO = new ContentDTO(-1, -1, -1, ContentStatus.ready, content, googleNewsUrl, newUrl, []);
-        contentService.insert(contentDTO);
-    } else {
-        throw new Error("Failed to extract content from URL");
+    const tweets = await newsAggregatorDatabase.news();
+    for (let tweet of tweets) {
+        console.log(tweet)
     }
+
+    // const googleNewsUrl = "https://news.google.com/rss/articles/CBMiO2h0dHBzOi8vd3d3LmNic25ld3MuY29tL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv0gE_aHR0cHM6Ly93d3cuY2JzbmV3cy5jb20vYW1wL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv?oc=5";
+    // const newUrl = await getGoogleNewsArticleUrl(googleNewsUrl);
+    // const content = await extractDataFromURLViaPuppeteer(newUrl, '//*[@id="article-0"]/section');
+    // if (content) {
+    //     const contentDTO = new ContentDTO(-1, -1, -1, ContentStatus.ready, content, googleNewsUrl, newUrl, []);
+    //     contentService.insert(contentDTO);
+    // } else {
+    //     throw new Error("Failed to extract content from URL");
+    // }
 })();
 
