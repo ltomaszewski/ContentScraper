@@ -67,10 +67,9 @@ console.log("Application started with configuration: " + configuration.arg1 + ",
         console.log(`REST server is running on port ${PORT}`);
     });
 
-    const tweets = await newsAggregatorDatabase.news();
-    for (let tweet of tweets) {
+    await newsAggregatorDatabase.tweetsWithForLoop((tweet) => {
         console.log(tweet)
-    }
+    })
 
 
     // const googleNewsUrl = "https://news.google.com/rss/articles/CBMiO2h0dHBzOi8vd3d3LmNic25ld3MuY29tL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv0gE_aHR0cHM6Ly93d3cuY2JzbmV3cy5jb20vYW1wL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv?oc=5";

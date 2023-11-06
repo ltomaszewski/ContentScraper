@@ -1,3 +1,4 @@
+import * as r from 'rethinkdb';
 import { configuration } from "../../Index";
 import { DatabaseHost, DatabasePort, baseNewsAggregatorDatabaseName } from "../../config/Constants";
 import { DatabaseRepository } from "../repositories/DatabaseRepository/DatabaseRepository";
@@ -24,11 +25,13 @@ export class NewsAggregatorDatabase {
     }
 
     async tweetsWithForLoop(forLoop: (tweet: Tweet) => void) {
-        const result = (await this.databaseRepository.query(this.databaseName, Tweet.Schema.name, function (table) { return table }))
+        const result = (await this.databaseRepository.query(this.databaseName, Tweet.Schema.name, function (table) { return table.orderBy({ index: r.desc('id') }) }))
+        let nextEntity
+        let nextTweet
         while (result.hasNext) {
-            const nextEntity = await result.next()
-            const nextTweet = Tweet.createFromObject(nextEntity)
-            forLoop(nextTweet)
+            nextEntity = await result.next()
+            nextTweet = Tweet.createFromObject(nextEntity)
+            await forLoop(nextTweet)
         }
         result.close()
     }
