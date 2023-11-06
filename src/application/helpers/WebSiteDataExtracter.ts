@@ -14,15 +14,16 @@ export async function extractDataFromURLViaPuppeteer(url: string, xpath: string)
 
     if (selectedContent.length > 0) {
         // Get the text content of the selected element
-        const innerHTML = await page.evaluate(() => {
+        const innerHTML = await page.evaluate((element) => {
             for (const script of document.body.querySelectorAll('script')) script.remove();
-            return document.body.innerHTML;
-        });
+            for (const script of document.body.querySelectorAll('style')) script.remove();
+            // Cast the Node to HTMLElement to access innerHTML property
+            const htmlElement = element as HTMLElement;
+            return htmlElement.innerHTML;
+        }, selectedContent[0]);
 
-        const content = await page.evaluate(element => element.innerHTML, selectedContent[0]);
-
-        if (content) {
-            return removeJavaScriptAndHTML(content)
+        if (innerHTML) {
+            return removeJavaScriptHTMLAndWhitespace(innerHTML)
         }
     } else {
         throw new Error('Element with specified XPath not found.')
@@ -31,7 +32,7 @@ export async function extractDataFromURLViaPuppeteer(url: string, xpath: string)
     await browser.close();
 }
 
-function removeJavaScriptAndHTML(inputString: string): string {
+function removeJavaScriptHTMLAndWhitespace(inputString: string): string {
     // Remove JavaScript code
     const withoutJavaScript = inputString.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
 
@@ -41,7 +42,10 @@ function removeJavaScriptAndHTML(inputString: string): string {
     // Remove new lines and replace them with spaces
     const withoutNewLines = withoutHTML.replace(/\n/g, ' ').replace(/\r/g, ' ');
 
-    return withoutNewLines;
+    // Remove duplicated whitespace (more than one space) with a single space
+    const withoutDuplicatedWhitespace = withoutNewLines.replace(/\s+/g, ' ');
+
+    return withoutDuplicatedWhitespace.trim(); // Trim to remove leading and trailing spaces
 }
 
 

@@ -27,7 +27,21 @@ export const configuration: CLIConfiguration = CLIConfiguration.fromCommandLineA
 // Logging the configuration details
 console.log("Application started with configuration: " + configuration.arg1 + ", environment: " + configuration.env);
 
+const testMode: boolean = false;
+
 (async () => {
+    if (testMode) {
+        const googleNewsUrl = "https://news.google.com/rss/articles/CBMiO2h0dHBzOi8vd3d3LmNic25ld3MuY29tL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv0gE_aHR0cHM6Ly93d3cuY2JzbmV3cy5jb20vYW1wL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv?oc=5";
+        const newUrl = await getGoogleNewsArticleUrl(googleNewsUrl);
+        const content = await extractDataFromURLViaPuppeteer(newUrl, '//*[@id="article-0"]/section');
+        if (content) {
+            const contentDTO = new ContentDTO(-1, -1, -1, ContentStatus.ready, content, googleNewsUrl, newUrl, []);
+            console.log(contentDTO.content);
+        } else {
+            throw new Error("Failed to extract content from URL");
+        }
+        process.exit()
+    }
     // Database connection details
     const databaseName = `${configuration.env}${baseDatabaseName}`;
 
@@ -67,19 +81,8 @@ console.log("Application started with configuration: " + configuration.arg1 + ",
         console.log(`REST server is running on port ${PORT}`);
     });
 
-    await newsAggregatorDatabase.tweetsWithForLoop((tweet) => {
-        console.log(tweet)
-    })
-
-
-    // const googleNewsUrl = "https://news.google.com/rss/articles/CBMiO2h0dHBzOi8vd3d3LmNic25ld3MuY29tL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv0gE_aHR0cHM6Ly93d3cuY2JzbmV3cy5jb20vYW1wL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv?oc=5";
-    // const newUrl = await getGoogleNewsArticleUrl(googleNewsUrl);
-    // const content = await extractDataFromURLViaPuppeteer(newUrl, '//*[@id="article-0"]/section');
-    // if (content) {
-    //     const contentDTO = new ContentDTO(-1, -1, -1, ContentStatus.ready, content, googleNewsUrl, newUrl, []);
-    //     contentService.insert(contentDTO);
-    // } else {
-    //     throw new Error("Failed to extract content from URL");
-    // }
+    // await newsAggregatorDatabase.tweetsWithForLoop((tweet) => {
+    //     console.log(tweet)
+    // })
 })();
 

@@ -26,13 +26,15 @@ export class NewsAggregatorDatabase {
 
     async tweetsWithForLoop(forLoop: (tweet: Tweet) => void) {
         const result = (await this.databaseRepository.query(this.databaseName, Tweet.Schema.name, function (table) { return table.orderBy({ index: r.desc('id') }) }))
-        let nextEntity
-        let nextTweet
-        while (result.hasNext) {
-            nextEntity = await result.next()
-            nextTweet = Tweet.createFromObject(nextEntity)
-            await forLoop(nextTweet)
-        }
+        try {
+            let nextEntity
+            let nextTweet
+            while (result.hasNext) {
+                nextEntity = await result.next()
+                nextTweet = Tweet.createFromObject(nextEntity)
+                await forLoop(nextTweet)
+            }
+        } catch { }
         result.close()
     }
 
@@ -42,6 +44,20 @@ export class NewsAggregatorDatabase {
         const sampleEntities = rawResult.map((object: any) => { return News.createFromObject(object) })
         result.close()
         return sampleEntities
+    }
+
+    async newsWithForLoop(forLoop: (tweet: Tweet) => void) {
+        const result = (await this.databaseRepository.query(this.databaseName, News.Schema.name, function (table) { return table.orderBy({ index: r.desc('id') }) }))
+        try {
+            let nextEntity
+            let nextTweet
+            while (result.hasNext) {
+                nextEntity = await result.next()
+                nextTweet = Tweet.createFromObject(nextEntity)
+                await forLoop(nextTweet)
+            }
+        } catch { }
+        result.close()
     }
 }
 

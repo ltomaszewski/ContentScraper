@@ -9,6 +9,21 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
-        "allowJs": true
-    }
+        "allowJs": true,
+        "types": [
+            "node",
+            "jest"
+        ],
+        "declaration": true,
+        "resolveJsonModule": true,
+        "moduleResolution": "Node"
+    },
+    "exclude": [
+        "node_modules",
+        "src/**/*.spec.ts",
+        "src/**/*.test.ts",
+    ],
+    "include": [
+        "src/**/*"
+    ],
 }
