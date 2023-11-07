@@ -59,6 +59,15 @@ export class NewsAggregatorDatabase {
         } catch { }
         result.close()
     }
+
+    async tweetsTrackChanges() {
+        await this.databaseRepository.changes(this.databaseName, Tweet.Schema.name, (new_val, oldVal, err) => {
+            console.log("NEW_VALUE", new_val);
+            console.log("OLD_VALUE", oldVal);
+            console.log("Error", err)
+        });
+    }
+
 }
 
 export class Tweet {

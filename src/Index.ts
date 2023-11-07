@@ -31,11 +31,14 @@ const testMode: boolean = false;
 
 (async () => {
     if (testMode) {
+        const proxyApiKey = "JJh2f83WN2U2iugfCC0D2ppL14Q1TrQGCVNNKw5PdDOYA7cGm5Moz9al6tfz6GKUbJtAqlKWoIQSnZnYA9"
+        const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + proxyApiKey + "&url="
         const googleNewsUrl = "https://news.google.com/rss/articles/CBMiO2h0dHBzOi8vd3d3LmNic25ld3MuY29tL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv0gE_aHR0cHM6Ly93d3cuY2JzbmV3cy5jb20vYW1wL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv?oc=5";
         const newUrl = await getGoogleNewsArticleUrl(googleNewsUrl);
-        const content = await extractDataFromURLViaPuppeteer(newUrl, '//*[@id="article-0"]/section');
+        const newUrlWithProxy = proxyPrefix + encodeURIComponent(newUrl);
+        const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, '//*[@id="article-0"]/section');
         if (content) {
-            const contentDTO = new ContentDTO(-1, -1, -1, ContentStatus.ready, content, googleNewsUrl, newUrl, []);
+            const contentDTO = new ContentDTO(-1, -1, -1, ContentStatus.done, content, googleNewsUrl, newUrl, []);
             console.log(contentDTO.content);
         } else {
             throw new Error("Failed to extract content from URL");
@@ -84,5 +87,8 @@ const testMode: boolean = false;
     // await newsAggregatorDatabase.tweetsWithForLoop((tweet) => {
     //     console.log(tweet)
     // })
+
+    await newsAggregatorDatabase.tweetsTrackChanges();
+
 })();
 
