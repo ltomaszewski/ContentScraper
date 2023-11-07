@@ -1,18 +1,21 @@
 export class ContentLinkConfigurationDTO {
     readonly id: number | undefined;
     readonly urlPrefix: string;
-    readonly xpath: string;
+    readonly xpaths: string[];
+    readonly googleNewsTitleSuffix: string
 
-    constructor(id: number | undefined, urlPrefix: string, xpath: string) {
+    constructor(id: number | undefined, urlPrefix: string, xpaths: string[], googleNewsTitleSuffix: string) {
         this.id = id;
         this.urlPrefix = urlPrefix;
-        this.xpath = xpath;
+        this.xpaths = xpaths;
+        this.googleNewsTitleSuffix = googleNewsTitleSuffix
     }
 
     static createFromObject(obj: any): ContentLinkConfigurationDTO {
         const id = obj.id;
         const urlPrefix = obj.urlPrefix;
-        const xpath = obj.xpath;
-        return new ContentLinkConfigurationDTO(id, urlPrefix, xpath);
+        const xpaths = obj.xpaths;
+        const googleNewsTitleSuffix = obj.googleNewsTitleSuffix
+        return new ContentLinkConfigurationDTO(id, urlPrefix, xpaths, googleNewsTitleSuffix);
     }
 }

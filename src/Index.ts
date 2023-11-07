@@ -17,6 +17,8 @@ import { extractDataFromURLViaPuppeteer } from "./application/helpers/WebSiteDat
 import { ContentDTO } from "./application/dtos/ContentDTO";
 import { ContentStatus } from "./application/entities/Content";
 import { NewsAggregatorDatabase } from "./application/services/NewsAggregatorDatabase";
+import { ContentLinkConfigurationDTO } from "./application/dtos/ContentLinkConfigurationDTO";
+import { ContentFetcherService } from "./application/services/ContentFetcherService";
 
 // Extracting command line arguments
 const args = process.argv;
@@ -33,18 +35,23 @@ const testMode: boolean = false;
     if (testMode) {
         const proxyApiKey = "JJh2f83WN2U2iugfCC0D2ppL14Q1TrQGCVNNKw5PdDOYA7cGm5Moz9al6tfz6GKUbJtAqlKWoIQSnZnYA9"
         const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + proxyApiKey + "&url="
-        const googleNewsUrl = "https://news.google.com/rss/articles/CBMiO2h0dHBzOi8vd3d3LmNic25ld3MuY29tL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv0gE_aHR0cHM6Ly93d3cuY2JzbmV3cy5jb20vYW1wL25ld3MvaXNyYWVsLXdhci1oYW1hcy1ibGlua2VuLWdhemEv?oc=5";
+        const googleNewsUrl = "https://news.google.com/rss/articles/CBMifGh0dHBzOi8vd3d3LnJldXRlcnMuY29tL3dvcmxkL21pZGRsZS1lYXN0L211c2stc2F5cy1zdGFybGluay1wcm92aWRlLWNvbm5lY3Rpdml0eS1nYXphLXRocm91Z2gtYWlkLW9yZ2FuaXphdGlvbnMtMjAyMy0xMC0yOC_SAQA?oc=5&hl=en-US&gl=US&ceid=US:en";
         const newUrl = await getGoogleNewsArticleUrl(googleNewsUrl);
+
         const newUrlWithProxy = proxyPrefix + encodeURIComponent(newUrl);
-        const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, '//*[@id="article-0"]/section');
+        console.log(newUrlWithProxy)
+        const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, '//*[@id="main-content"]/article/div[1]/div/div/div/div[2]');
+
         if (content) {
             const contentDTO = new ContentDTO(-1, -1, -1, ContentStatus.done, content, googleNewsUrl, newUrl, []);
-            console.log(contentDTO.content);
+            console.log(contentDTO.content)
+            // await contentService.insert(contentDTO)
         } else {
             throw new Error("Failed to extract content from URL");
         }
         process.exit()
     }
+
     // Database connection details
     const databaseName = `${configuration.env}${baseDatabaseName}`;
 
@@ -64,6 +71,10 @@ const testMode: boolean = false;
 
     const contentLinkConfigurationService = new ContentLinkConfigurationService(contentLinkConfigurationRepository);
     const contentService = new ContentService(contentRepository);
+    const googleNewsReutersConfiguration = new ContentLinkConfigurationDTO(1, "https://www.reuters.com/", ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div'], "- Reuters");
+    contentLinkConfigurationService.insert(googleNewsReutersConfiguration);
+    console.log(await contentLinkConfigurationService.getAll())
+    const contentFetcherService = new ContentFetcherService(newsAggregatorDatabase, contentService, contentLinkConfigurationService);
 
     // Setup REST Server
     const app = express();
@@ -88,7 +99,7 @@ const testMode: boolean = false;
     //     console.log(tweet)
     // })
 
-    await newsAggregatorDatabase.tweetsTrackChanges();
-
+    await contentFetcherService.setup()
+    process.exit()
 })();
 

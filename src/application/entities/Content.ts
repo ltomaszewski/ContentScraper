@@ -67,4 +67,4 @@ export class Content {
 }
 
 
-export enum ContentStatus { needsGoogleNewsDecode, queuedForGoogleNewsDecode, created, queuedForFetchContent, error, done };
+export enum ContentStatus { error, done };

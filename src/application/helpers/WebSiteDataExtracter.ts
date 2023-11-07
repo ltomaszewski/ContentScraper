@@ -1,6 +1,7 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { ElementHandle } from 'puppeteer';
+import sanitizeHtml from 'sanitize-html';
 
-export async function extractDataFromURLViaPuppeteer(url: string, xpath: string) {
+export async function extractDataFromURLViaPuppeteer(url: string, xpaths: string[]) {
     const browser = await puppeteer.launch({
         headless: 'new',
         args: [
@@ -10,7 +11,12 @@ export async function extractDataFromURLViaPuppeteer(url: string, xpath: string)
     const page = await browser.newPage()
     await page.goto(url)
 
-    const selectedContent = await page.$x(xpath);
+    let selectedContent: Array<ElementHandle<Node>> = [];
+    let xPathIndex = 0
+    while (selectedContent.length == 0) {
+        selectedContent = await page.$x(xpaths[xPathIndex]);
+        xPathIndex = xPathIndex + 1
+    }
 
     if (selectedContent.length > 0) {
         // Get the text content of the selected element
@@ -23,10 +29,11 @@ export async function extractDataFromURLViaPuppeteer(url: string, xpath: string)
         }, selectedContent[0]);
 
         if (innerHTML) {
-            return removeJavaScriptHTMLAndWhitespace(innerHTML)
+            return removeJavaScriptHTMLAndWhitespace(sanitizeHtml(innerHTML))
         }
     } else {
-        throw new Error('Element with specified XPath not found.')
+        let source = await page.content();
+        return sanitizeHtml(source)
     }
 
     await browser.close();

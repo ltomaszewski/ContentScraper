@@ -11,23 +11,26 @@ export class ContentLinkConfiguration {
     };
     readonly id: number
     readonly urlPrefix: string
-    readonly xpath: string
+    readonly xpaths: string[]
+    readonly googleNewsTitleSuffix: string // string that indicate the source on the end of title in News stracture
 
-    constructor(id: number, urlPrefix: string, xpath: string) {
+    constructor(id: number, urlPrefix: string, xpaths: string[], googleNewsTitleSuffix: string) {
         this.id = id
         this.urlPrefix = urlPrefix
-        this.xpath = xpath
+        this.xpaths = xpaths
+        this.googleNewsTitleSuffix = googleNewsTitleSuffix
     }
 
     static createFromObject(obj: any): ContentLinkConfiguration {
         const id = obj.id;
         const urlPrefix = obj.urlPrefix;
-        const xpath = obj.xpath;
-        return new ContentLinkConfiguration(id, urlPrefix, xpath);
+        const xpaths = obj.xpaths;
+        const googleNewsTitleSuffix = obj.googleNewsTitleSuffix
+        return new ContentLinkConfiguration(id, urlPrefix, xpaths, googleNewsTitleSuffix);
     }
 
     static createFromDTO(dto: ContentLinkConfigurationDTO, newId: number): ContentLinkConfiguration {
-        return new ContentLinkConfiguration(newId, dto.urlPrefix, dto.xpath);
+        return new ContentLinkConfiguration(newId, dto.urlPrefix, dto.xpaths, dto.googleNewsTitleSuffix);
     }
 
     static findMaxId(sources: ContentLinkConfiguration[]): number {

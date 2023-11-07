@@ -24,7 +24,7 @@ export class NewsAggregatorDatabase {
         return sampleEntities
     }
 
-    async tweetsWithForLoop(forLoop: (tweet: Tweet) => void) {
+    async tweetsWithForLoop(forLoop: (tweet: Tweet) => boolean) {
         const result = (await this.databaseRepository.query(this.databaseName, Tweet.Schema.name, function (table) { return table.orderBy({ index: r.desc('id') }) }))
         try {
             let nextEntity
@@ -32,7 +32,11 @@ export class NewsAggregatorDatabase {
             while (result.hasNext) {
                 nextEntity = await result.next()
                 nextTweet = Tweet.createFromObject(nextEntity)
-                await forLoop(nextTweet)
+                const shouldStop = await forLoop(nextTweet)
+                if (shouldStop) {
+                    result.close()
+                    return
+                }
             }
         } catch { }
         result.close()
@@ -46,15 +50,19 @@ export class NewsAggregatorDatabase {
         return sampleEntities
     }
 
-    async newsWithForLoop(forLoop: (tweet: Tweet) => void) {
+    async newsWithForLoop(forLoop: (news: News) => Promise<boolean>) {
         const result = (await this.databaseRepository.query(this.databaseName, News.Schema.name, function (table) { return table.orderBy({ index: r.desc('id') }) }))
         try {
             let nextEntity
-            let nextTweet
+            let nextNews
             while (result.hasNext) {
                 nextEntity = await result.next()
-                nextTweet = Tweet.createFromObject(nextEntity)
-                await forLoop(nextTweet)
+                nextNews = News.createFromObject(nextEntity)
+                const shouldStop = await forLoop(nextNews)
+                if (shouldStop) {
+                    result.close()
+                    return
+                }
             }
         } catch { }
         result.close()
