@@ -7,7 +7,7 @@ import { extractDataFromURLViaPuppeteer } from "../../helpers/WebSiteDataExtract
 import { ContentLinkConfigurationService } from "../ContentLinkConfigurationService";
 import { ContentService } from "../ContentService";
 import { News, NewsAggregatorDatabase, Tweet } from "../NewsAggregatorDatabase";
-import { checkIfUrlIsGoogleNews, checkIfUrlIsSupported, chunkArray, fetchContent, findConfigurationfor } from "./ContentFetcherUtils";
+import { checkIfUrlIsGoogleNews, checkIfUrlIsSupported, chunkArray, fetchContentViaPuppeteer, findConfigurationfor } from "./ContentFetcherUtils";
 import { ContentRequest } from "./model/ContentRequest";
 
 export class ContentFetcherService {
@@ -18,7 +18,7 @@ export class ContentFetcherService {
     private configurations: ContentLinkConfiguration[] = [];
 
     private queue: ContentRequest[] = [];
-    private processChunkSize: number = 5;
+    private processChunkSize: number = 20;
     private isProcessing: boolean = false
 
     constructor(
@@ -49,16 +49,35 @@ export class ContentFetcherService {
     async setup() {
         this.configurations = await this.contentConfigurationService.getAll()
 
-        // await this.newsAggregatorDatabase.newsWithForLoop(async (news): Promise<boolean> => {
-        //     return this.processNews(news);
-        // });
+        await this.newsAggregatorDatabase.newsWithForLoop(async (news): Promise<boolean> => {
+            return this.processNews(news);
+        });
 
         await this.newsAggregatorDatabase.tweetsWithForLoop(async (tweet): Promise<boolean> => {
             return this.processTweet(tweet)
         });
+
+        this.newsAggregatorDatabase
+            .newsTrackChanges((newNews, oldNews, err) => {
+                if (oldNews === null && newNews) {
+                    this.processNews(newNews)
+                }
+            });
+
+        this.newsAggregatorDatabase
+            .tweetsTrackChanges((newTweet, oldTweet, err) => {
+                if (oldTweet === null && newTweet) {
+                    this.processTweet(newTweet)
+                }
+            });
     }
 
     private async processNews(news: News): Promise<boolean> {
+        const isContentAlreadyExists = await this.contentService.checkIfContentAlreadyExistsFor(news.link)
+        if (isContentAlreadyExists) {
+            console.log("News already downloaded " + news)
+            return false;
+        }
         const isGoogleNews = checkIfUrlIsGoogleNews(news.link)
         const configuration = findConfigurationfor(news, isGoogleNews, this.configurations)
         if (configuration) {
@@ -83,7 +102,11 @@ export class ContentFetcherService {
         }
         if (extractedLinks.length > 0) {
             if (matchedWithConfiguration) {
-                // TODO: Tweets can generate duplicated urls, so before its pushed to the queue it should be check if the queue already have such a tweet
+                const isContentAlreadyExists = await this.contentService.checkIfContentAlreadyExistsFor(extractedLinks[0])
+                if (isContentAlreadyExists) {
+                    console.log("News already downloaded " + extractedLinks[0])
+                    return false;
+                }
                 const contentRequest = new ContentRequest(undefined, tweet, matchedWithConfiguration, false, extractedLinks)
                 this.queue.push(contentRequest)
             }
@@ -92,7 +115,8 @@ export class ContentFetcherService {
     }
 
     private async flushQueue(queue: ContentRequest[]) {
-        const chunks = chunkArray(queue, this.processChunkSize);
+        const uniqueQueue = ContentRequest.removeDuplicateContentRequests(queue)
+        const chunks = chunkArray(uniqueQueue, this.processChunkSize);
 
         for (const chunk of chunks) {
             await Promise.all(chunk.map(async (item) => {
@@ -116,7 +140,7 @@ export class ContentFetcherService {
                     return
                 }
             }
-            const content = await fetchContent(url, item.configuration)
+            const content = await fetchContentViaPuppeteer(url, item.configuration)
             if (content) {
                 const contentDTO = new ContentDTO(item.configuration.id, news.id, -1, ContentStatus.done, content, news.link, (item.isGoogleNews ? url : ""), [])
                 await this.contentService.insert(contentDTO)
@@ -128,17 +152,17 @@ export class ContentFetcherService {
     }
 
     private async processTweetQueueItem(item: ContentRequest, tweet: Tweet) {
-        console.log("processTweetQueueItem" + item.extractedLinks)
+        console.log("processTweetQueueItem " + item.extractedLinks)
+        let url = item.extractedLinks[0]
         try {
-            let url = item.extractedLinks[0]
-            const content = await fetchContent("https://" + url, item.configuration)
+            const content = await fetchContentViaPuppeteer("https://" + url, item.configuration)
             if (content) {
                 console.log("processTweetQueueItem save content" + item.extractedLinks)
                 const contentDTO = new ContentDTO(item.configuration.id, -1, tweet.id, ContentStatus.done, content, url, "", [])
                 await this.contentService.insert(contentDTO)
             }
         } catch (error: any) {
-            const contentDTO = new ContentDTO(item.configuration.id, -1, tweet.id, ContentStatus.error, "", item.extractedLinks[0], undefined, [error])
+            const contentDTO = new ContentDTO(item.configuration.id, -1, tweet.id, ContentStatus.error, "", url, "", [error])
             await this.contentService.insert(contentDTO)
         }
     }

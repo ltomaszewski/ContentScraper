@@ -14,10 +14,24 @@ export class ContentRequest {
         configuration: ContentLinkConfiguration,
         isGoogleNews: boolean,
         extractedLinks: string[]) {
-        this.news = news
-        this.tweet = tweet
-        this.configuration = configuration
-        this.isGoogleNews = isGoogleNews
-        this.extractedLinks = extractedLinks
+        this.news = news;
+        this.tweet = tweet;
+        this.configuration = configuration;
+        this.isGoogleNews = isGoogleNews;
+        this.extractedLinks = extractedLinks;
+    }
+
+    static removeDuplicateContentRequests(contentRequests: ContentRequest[]): ContentRequest[] {
+        const uniqueExtractedLinks: Set<string[]> = new Set();
+        const filteredContentRequests: ContentRequest[] = [];
+
+        for (const contentRequest of contentRequests) {
+            if (!uniqueExtractedLinks.has(contentRequest.extractedLinks)) {
+                uniqueExtractedLinks.add(contentRequest.extractedLinks);
+                filteredContentRequests.push(contentRequest);
+            }
+        }
+
+        return filteredContentRequests;
     }
 }

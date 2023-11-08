@@ -2,6 +2,7 @@ import puppeteer, { ElementHandle } from 'puppeteer';
 import sanitizeHtml from 'sanitize-html';
 
 export async function extractDataFromURLViaPuppeteer(url: string, xpaths: string[]) {
+    console.log("extractDataFromURLViaPuppeteer " + url)
     const browser = await puppeteer.launch({
         headless: 'new',
         args: [
@@ -29,9 +30,11 @@ export async function extractDataFromURLViaPuppeteer(url: string, xpaths: string
         }, selectedContent[0]);
 
         if (innerHTML) {
+            await browser.close();
             return removeJavaScriptHTMLAndWhitespace(sanitizeHtml(innerHTML))
         }
     } else {
+        await browser.close();
         let source = await page.content();
         return sanitizeHtml(source)
     }

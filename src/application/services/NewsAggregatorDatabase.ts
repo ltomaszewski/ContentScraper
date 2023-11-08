@@ -68,14 +68,21 @@ export class NewsAggregatorDatabase {
         result.close()
     }
 
-    async tweetsTrackChanges() {
+    async tweetsTrackChanges(change: (newTweet: Tweet, oldTweet: Tweet, err: Error) => void) {
         await this.databaseRepository.changes(this.databaseName, Tweet.Schema.name, (new_val, oldVal, err) => {
-            console.log("NEW_VALUE", new_val);
-            console.log("OLD_VALUE", oldVal);
-            console.log("Error", err)
+            const newTweet = Tweet.createFromObject(new_val);
+            const oldTweet = Tweet.createFromObject(oldVal);
+            change(newTweet, oldTweet, err);
         });
     }
 
+    async newsTrackChanges(change: (newNews: News, oldNews: News, err: Error) => void) {
+        await this.databaseRepository.changes(this.databaseName, News.Schema.name, (new_val, oldVal, err) => {
+            const newNews = News.createFromObject(new_val);
+            const oldNews = News.createFromObject(oldVal);
+            change(newNews, oldNews, err);
+        });
+    }
 }
 
 export class Tweet {

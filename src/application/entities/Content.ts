@@ -22,7 +22,7 @@ export class Content {
     readonly status: ContentStatus
     readonly content: string
     readonly baseUrl: string // Added: to hold base url for future processing
-    readonly url: string | undefined // Added: To save url after redirection of baseUrl, can be nil if there is no redirection
+    readonly url: string // Added: To save url after redirection of baseUrl, can be nil if there is no redirection
     readonly errors: string[]
 
 
@@ -44,7 +44,11 @@ export class Content {
         this.status = status;
         this.content = content;
         this.baseUrl = baseUrl;
-        this.url = url;
+        if (url) {
+            this.url = url;
+        } else {
+            this.url = ""
+        }
         this.errors = errors;
     }
 

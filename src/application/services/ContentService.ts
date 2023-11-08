@@ -13,7 +13,8 @@ export class ContentService {
         if (dto.baseUrl) {
             const hasAlreadyContentWithTheSameDTO = await this.contentRepository.checkIfEntityWithBaseUrlExists(dto.baseUrl);
             if (hasAlreadyContentWithTheSameDTO) {
-                throw new Error('Content with same URL already exists');
+                console.log('Content with same URL already exists' + dto.baseUrl);
+                return
             }
         }
 
@@ -27,6 +28,10 @@ export class ContentService {
         const entity = Content.createFromDTO(dto, newId);
         await this.contentRepository.insert(entity);
         return entity;
+    }
+
+    async checkIfContentAlreadyExistsFor(url: string): Promise<boolean> {
+        return await this.contentRepository.checkIfEntityWithBaseUrlExists(url);
     }
 
     async getAll(): Promise<Content[]> {

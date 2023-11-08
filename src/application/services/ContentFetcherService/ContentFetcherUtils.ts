@@ -1,3 +1,6 @@
+import * as xpath from 'xpath';
+import * as xmldom from 'xmldom';
+import axios from "axios";
 import { ContentLinkConfiguration } from "../../entities/ContentLinkConfiguration";
 import { extractDataFromURLViaPuppeteer } from "../../helpers/WebSiteDataExtracter";
 import { News } from "../NewsAggregatorDatabase";
@@ -39,7 +42,7 @@ export function checkIfUrlIsGoogleNews(url: string): boolean {
     return url.startsWith("https://news.google.com")
 }
 
-export async function fetchContent(url: string, configuration: ContentLinkConfiguration): Promise<string | undefined> {
+export async function fetchContentViaPuppeteer(url: string, configuration: ContentLinkConfiguration): Promise<string | undefined> {
     const proxyApiKey = "JJh2f83WN2U2iugfCC0D2ppL14Q1TrQGCVNNKw5PdDOYA7cGm5Moz9al6tfz6GKUbJtAqlKWoIQSnZnYA9"
     const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + proxyApiKey + "&url="
     const newUrlWithProxy = proxyPrefix + encodeURIComponent(url);
