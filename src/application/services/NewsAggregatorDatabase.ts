@@ -24,7 +24,7 @@ export class NewsAggregatorDatabase {
         return sampleEntities
     }
 
-    async tweetsWithForLoop(forLoop: (tweet: Tweet) => boolean) {
+    async tweetsWithForLoop(forLoop: (tweet: Tweet) => Promise<boolean>) {
         const result = (await this.databaseRepository.query(this.databaseName, Tweet.Schema.name, function (table) { return table.orderBy({ index: r.desc('id') }) }))
         try {
             let nextEntity

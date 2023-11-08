@@ -12,12 +12,14 @@ export class ContentLinkConfiguration {
     readonly id: number
     readonly urlPrefixs: string[]
     readonly xpaths: string[]
+    readonly linkPatternRegexs: string[]
     readonly googleNewsTitleSuffix: string // string that indicate the source on the end of title in News stracture
 
-    constructor(id: number, urlPrefixs: string[], xpaths: string[], googleNewsTitleSuffix: string) {
+    constructor(id: number, urlPrefixs: string[], xpaths: string[], linkPatternRegexs: string[], googleNewsTitleSuffix: string) {
         this.id = id
         this.urlPrefixs = urlPrefixs
         this.xpaths = xpaths
+        this.linkPatternRegexs = linkPatternRegexs
         this.googleNewsTitleSuffix = googleNewsTitleSuffix
     }
 
@@ -25,12 +27,13 @@ export class ContentLinkConfiguration {
         const id = obj.id;
         const urlPrefixs = obj.urlPrefixs;
         const xpaths = obj.xpaths;
-        const googleNewsTitleSuffix = obj.googleNewsTitleSuffix
-        return new ContentLinkConfiguration(id, urlPrefixs, xpaths, googleNewsTitleSuffix);
+        const linkPatternRegexs = obj.linkPatternRegexs;
+        const googleNewsTitleSuffix = obj.googleNewsTitleSuffix;
+        return new ContentLinkConfiguration(id, urlPrefixs, xpaths, linkPatternRegexs, googleNewsTitleSuffix);
     }
 
     static createFromDTO(dto: ContentLinkConfigurationDTO, newId: number): ContentLinkConfiguration {
-        return new ContentLinkConfiguration(newId, dto.urlPrefixs, dto.xpaths, dto.googleNewsTitleSuffix);
+        return new ContentLinkConfiguration(newId, dto.urlPrefixs, dto.xpaths, dto.linkPatternRegexs, dto.googleNewsTitleSuffix);
     }
 
     static findMaxId(sources: ContentLinkConfiguration[]): number {

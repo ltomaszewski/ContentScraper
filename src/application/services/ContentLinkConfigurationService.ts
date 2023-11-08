@@ -11,8 +11,8 @@ export class ContentLinkConfigurationService {
 
     async insert(dto: ContentLinkConfigurationDTO) {
         const configurations = await this.contentLinkConfigurationRepository.getAll();
-        if ((await configurations).find(x => x.urlPrefix === dto.urlPrefix)) {
-            throw Error(`Content Link Configuration already exists with linkPrefix ${dto.urlPrefix}`);
+        if ((await configurations).find(x => this.areStringArraysIdentical(x.urlPrefixs, dto.urlPrefixs))) {
+            throw Error(`Content Link Configuration already exists with linkPrefix ${dto.urlPrefixs}`);
         }
         const newId = ContentLinkConfiguration.createNewId(configurations);
         const entity = ContentLinkConfiguration.createFromDTO(dto, newId);
@@ -33,5 +33,22 @@ export class ContentLinkConfigurationService {
 
     async getAll(): Promise<ContentLinkConfiguration[]> {
         return await this.contentLinkConfigurationRepository.getAll();
+    }
+
+    private areStringArraysIdentical(arr1: string[], arr2: string[]): boolean {
+        // Check if arrays have the same length
+        if (arr1.length !== arr2.length) {
+            return false;
+        }
+
+        // Check if individual elements are identical
+        for (let i = 0; i < arr1.length; i++) {
+            if (arr1[i] !== arr2[i]) {
+                return false;
+            }
+        }
+
+        // Arrays are identical
+        return true;
     }
 }
