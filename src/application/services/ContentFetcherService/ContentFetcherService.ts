@@ -1,15 +1,15 @@
-import { Configuration } from "puppeteer";
 import { ContentDTO } from "../../dtos/ContentDTO";
 import { ContentStatus } from "../../entities/Content";
 import { ContentLinkConfiguration } from "../../entities/ContentLinkConfiguration";
 import { getGoogleNewsArticleUrl } from "../../helpers/GoogleUtils";
-import { extractDataFromURLViaPuppeteer } from "../../helpers/WebSiteDataExtracter";
 import { ContentLinkConfigurationService } from "../ContentLinkConfigurationService";
 import { ContentService } from "../ContentService";
 import { News, NewsAggregatorDatabase, Tweet } from "../NewsAggregatorDatabase";
 import { checkIfUrlIsGoogleNews, checkIfUrlIsSupported, chunkArray, fetchContentViaPuppeteer, findConfigurationfor } from "./ContentFetcherUtils";
 import { ContentRequest } from "./model/ContentRequest";
 
+// TODO: Error Handling, if any errors it should be retryed after a few minutes
+// TODO: Date of create of the content, date of fetch website, date of news or tweet
 export class ContentFetcherService {
     private newsAggregatorDatabase: NewsAggregatorDatabase;
     private contentService: ContentService;
@@ -57,16 +57,18 @@ export class ContentFetcherService {
             return this.processTweet(tweet)
         });
 
-        this.newsAggregatorDatabase
+        await this.newsAggregatorDatabase
             .newsTrackChanges((newNews, oldNews, err) => {
-                if (oldNews === null && newNews) {
+                if (oldNews === undefined && newNews) {
+                    console.log("NewsTrackChanges " + newNews.link)
                     this.processNews(newNews)
                 }
             });
 
-        this.newsAggregatorDatabase
+        await this.newsAggregatorDatabase
             .tweetsTrackChanges((newTweet, oldTweet, err) => {
-                if (oldTweet === null && newTweet) {
+                if (oldTweet === undefined && newTweet) {
+                    console.log("TweetsTrackChanges " + newTweet.text)
                     this.processTweet(newTweet)
                 }
             });
@@ -82,6 +84,7 @@ export class ContentFetcherService {
         const configuration = findConfigurationfor(news, isGoogleNews, this.configurations)
         if (configuration) {
             const contentRequest = new ContentRequest(news, undefined, configuration, isGoogleNews, [])
+            console.log("Added to news queue " + news.link)
             this.queue.push(contentRequest)
         }
         return false;
@@ -107,6 +110,7 @@ export class ContentFetcherService {
                     console.log("News already downloaded " + extractedLinks[0])
                     return false;
                 }
+                console.log("Added tweet to queue " + extractedLinks)
                 const contentRequest = new ContentRequest(undefined, tweet, matchedWithConfiguration, false, extractedLinks)
                 this.queue.push(contentRequest)
             }
@@ -132,6 +136,7 @@ export class ContentFetcherService {
     }
 
     private async processNewsQueueItem(item: ContentRequest, news: News) {
+        console.log("processNewsQueueItem " + news.link)
         try {
             let url = news.link
             if (item.isGoogleNews) {
@@ -142,6 +147,7 @@ export class ContentFetcherService {
             }
             const content = await fetchContentViaPuppeteer(url, item.configuration)
             if (content) {
+                console.log("processNewsQueueItem save content " + news.link)
                 const contentDTO = new ContentDTO(item.configuration.id, news.id, -1, ContentStatus.done, content, news.link, (item.isGoogleNews ? url : ""), [])
                 await this.contentService.insert(contentDTO)
             }
@@ -157,7 +163,7 @@ export class ContentFetcherService {
         try {
             const content = await fetchContentViaPuppeteer("https://" + url, item.configuration)
             if (content) {
-                console.log("processTweetQueueItem save content" + item.extractedLinks)
+                console.log("processTweetQueueItem save content " + item.extractedLinks)
                 const contentDTO = new ContentDTO(item.configuration.id, -1, tweet.id, ContentStatus.done, content, url, "", [])
                 await this.contentService.insert(contentDTO)
             }

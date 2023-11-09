@@ -72,13 +72,13 @@ const testMode: boolean = false;
 
     const contentLinkConfigurationService = new ContentLinkConfigurationService(contentLinkConfigurationRepository);
     const contentService = new ContentService(contentRepository);
-    const googleNewsReutersConfiguration = new ContentLinkConfigurationDTO(1,
-        ["https://www.reuters.com/", "reut.rs"],
-        ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div'],
-        ["reut\\.rs/[a-zA-Z0-9]+"],
-        "- Reuters");
-    await contentLinkConfigurationService.insert(googleNewsReutersConfiguration);
-    console.log(await contentLinkConfigurationService.getAll());
+    // const googleNewsReutersConfiguration = new ContentLinkConfigurationDTO(1,
+    //     ["https://www.reuters.com/", "reut.rs"],
+    //     ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div'],
+    //     ["reut\\.rs/[a-zA-Z0-9]+"],
+    //     "- Reuters");
+    // await contentLinkConfigurationService.insert(googleNewsReutersConfiguration);
+    // console.log(await contentLinkConfigurationService.getAll());
 
     const contentFetcherService = new ContentFetcherService(newsAggregatorDatabase, contentService, contentLinkConfigurationService);
 

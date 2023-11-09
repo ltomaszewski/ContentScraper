@@ -8,7 +8,7 @@ export class NewsAggregatorDatabase {
     private databaseName: string;
 
     constructor() {
-        this.databaseName = `${configuration.env}${baseNewsAggregatorDatabaseName}`;
+        this.databaseName = `${baseNewsAggregatorDatabaseName}`;
         this.databaseRepository = new DatabaseRepository(DatabaseHost, DatabasePort, false)
     }
 
@@ -68,18 +68,30 @@ export class NewsAggregatorDatabase {
         result.close()
     }
 
-    async tweetsTrackChanges(change: (newTweet: Tweet, oldTweet: Tweet, err: Error) => void) {
+    async tweetsTrackChanges(change: (newTweet: Tweet | undefined, oldTweet: Tweet | undefined, err: Error) => void) {
         await this.databaseRepository.changes(this.databaseName, Tweet.Schema.name, (new_val, oldVal, err) => {
-            const newTweet = Tweet.createFromObject(new_val);
-            const oldTweet = Tweet.createFromObject(oldVal);
+            let newTweet: Tweet | undefined = undefined;
+            if (new_val) {
+                newTweet = Tweet.createFromObject(new_val);
+            }
+            let oldTweet: Tweet | undefined = undefined;
+            if (oldVal) {
+                oldTweet = Tweet.createFromObject(oldVal);
+            }
             change(newTweet, oldTweet, err);
         });
     }
 
-    async newsTrackChanges(change: (newNews: News, oldNews: News, err: Error) => void) {
+    async newsTrackChanges(change: (newNews: News | undefined, oldNews: News | undefined, err: Error) => void) {
         await this.databaseRepository.changes(this.databaseName, News.Schema.name, (new_val, oldVal, err) => {
-            const newNews = News.createFromObject(new_val);
-            const oldNews = News.createFromObject(oldVal);
+            let newNews: News | undefined = undefined;
+            if (new_val) {
+                newNews = News.createFromObject(new_val);
+            }
+            let oldNews: News | undefined = undefined;
+            if (oldVal) {
+                oldNews = News.createFromObject(oldVal);
+            }
             change(newNews, oldNews, err);
         });
     }
