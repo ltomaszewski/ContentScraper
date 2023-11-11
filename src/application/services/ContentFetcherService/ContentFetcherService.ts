@@ -8,7 +8,7 @@ import { ContentService } from "../ContentService";
 import { News, NewsAggregatorDatabase, Tweet } from "../NewsAggregatorDatabase";
 import { checkIfUrlIsGoogleNews, checkIfUrlIsSupported, chunkArray, fetchContentViaPuppeteer, findConfigurationfor } from "./ContentFetcherUtils";
 import { ContentRequest } from "./model/ContentRequest";
-import { nextRetryDateFromNowPlusRandom } from "../../helpers/DateUtils";
+import { currentTimeInSeconds, nextRetryDateFromNowPlusRandom } from "../../helpers/DateUtils";
 
 export class ContentFetcherService {
     private newsAggregatorDatabase: NewsAggregatorDatabase;
@@ -20,6 +20,7 @@ export class ContentFetcherService {
     private queue: ContentRequest[] = [];
     private processChunkSize: number = 3;
     private isProcessing: boolean = false
+    private lastProcessingTime: number
 
     constructor(
         newsAggregatorDatabase: NewsAggregatorDatabase,
@@ -29,8 +30,19 @@ export class ContentFetcherService {
         this.newsAggregatorDatabase = newsAggregatorDatabase;
         this.contentService = contentService;
         this.contentConfigurationService = contentConfigurationService;
+        this.lastProcessingTime = currentTimeInSeconds()
         setInterval(async () => {
-            if (this.isProcessing || this.queue.length == 0) { return; }
+            if ((currentTimeInSeconds() - this.lastProcessingTime > 120) && !this.isProcessing) {
+                const contentRequestsForContentWithError = await this.contentService.createListOfContentRequestOfContentWithError(this.newsAggregatorDatabase, this.contentConfigurationService)
+                for (const contentRequest of contentRequestsForContentWithError) {
+                    this.queue.push(contentRequest)
+                }
+                if (contentRequestsForContentWithError.length == 0) {
+                    this.lastProcessingTime = currentTimeInSeconds()
+                }
+            }
+
+            if ((this.isProcessing || this.queue.length == 0)) { return; }
             this.isProcessing = true
             const queueToExecute: ContentRequest[] = [];
             while (this.queue.length > 0) {
@@ -40,12 +52,8 @@ export class ContentFetcherService {
                 }
             }
 
-            const contentRequestsForContentWithError = await this.contentService.createListOfContentRequestOfContentWithError(this.newsAggregatorDatabase, this.contentConfigurationService)
-            for (const contentRequest of contentRequestsForContentWithError) {
-                queueToExecute.push(contentRequest)
-            }
-
             await this.flushQueue(queueToExecute)
+            this.lastProcessingTime = currentTimeInSeconds()
             this.isProcessing = false
         }, 1000);
     }
@@ -176,7 +184,11 @@ export class ContentFetcherService {
                     [],
                     0,
                     0)
-                await this.contentService.insert(contentDTO)
+                if (item.isRetry) {
+                    await this.contentService.insertAfterRetryAndSuccess(contentDTO)
+                } else {
+                    await this.contentService.insert(contentDTO)
+                }
             }
         } catch (error: any) {
             const contentDTO = new ContentDTO(
@@ -220,7 +232,11 @@ export class ContentFetcherService {
                     [],
                     0,
                     0)
-                await this.contentService.insert(contentDTO)
+                if (item.isRetry) {
+                    await this.contentService.insertAfterRetryAndSuccess(contentDTO)
+                } else {
+                    await this.contentService.insert(contentDTO)
+                }
             }
         } catch (error: any) {
             const contentDTO = new ContentDTO(

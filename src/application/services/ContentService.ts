@@ -34,6 +34,15 @@ export class ContentService {
         return entity;
     }
 
+    async insertAfterRetryAndSuccess(dto: ContentDTO) {
+        const alreadyExistingEntity = await this.contentRepository.getEntityByBaseUrl(dto.baseUrl);
+
+        if (alreadyExistingEntity) {
+            const updatedEntity = Content.createFromDTO(dto, alreadyExistingEntity.id);
+            await this.contentRepository.insert(updatedEntity);
+        }
+    }
+
     async insertForRetry(dto: ContentDTO): Promise<boolean> {
         const alreadyExistingContentEntity = await this.contentRepository.getEntityByBaseUrl(dto.baseUrl);
         let newError: string = ""
@@ -62,12 +71,22 @@ export class ContentService {
         for (const entity of retryList) {
             const entityUpdatedWithStatusRetry = entity.createUpdatedMarkStatusRetry()
             await this.contentRepository.insert(entityUpdatedWithStatusRetry)
-            const tweet = undefined
-            const news = undefined
-            const contentLinkConfiguration = undefined
-            const isGoogleNews = checkIfUrlIsGoogleNews(entity.baseUrl)
-            const contentRequest = new ContentRequest(news, tweet, contentLinkConfiguration, isGoogleNews, [entity.baseUrl], true)
-            result.push(contentRequest)
+            let tweet = undefined
+            if (entity.relatedTweetId !== -1) {
+                tweet = await newsAggregatorDatabase.tweetBy(entity.relatedTweetId)
+            }
+            let news = undefined
+            if (entity.relatedNewsId !== -1) {
+                news = await newsAggregatorDatabase.newsBy(entity.relatedNewsId)
+            }
+            const contentLinkConfiguration = await contentLinkConfigurationService.getBy(entity.id_configuration)
+            if (contentLinkConfiguration && ((news === undefined) || (tweet === undefined))) {
+                const isGoogleNews = checkIfUrlIsGoogleNews(entity.baseUrl)
+                const contentRequest = new ContentRequest(news, tweet, contentLinkConfiguration, isGoogleNews, [entity.baseUrl], true)
+                result.push(contentRequest)
+            } else {
+                console.error("ContentLinkConfiguration is null or news and tweet has value. At this point Content can be connected only to one, tweet or news. Can not be attached to both. Entity id " + entity.id)
+            }
         }
         return result
     }

@@ -36,7 +36,7 @@ const testMode: boolean = false;
     if (testMode) {
         const configurationReuters = new ContentLinkConfiguration(1,
             ["https://www.reuters.com/", "reut.rs"],
-            ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div'],
+            ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div', '//*[@id="__next"]/div/div[4]/div[1]/article/div[1]'],
             ["reut\\.rs/[a-zA-Z0-9]+"],
             "- Reuters");
         const googleNewsTVN24Configuration = new ContentLinkConfigurationDTO(2,
@@ -61,11 +61,11 @@ const testMode: boolean = false;
         const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + proxyApiKey + "&url="
         const reutersShortLink = "https://reut.rs/49DuZKv"
         const tvn24Link = "https://tvn24.pl/swiat/walki-w-strefie-gazy-najwazniejsze-wydarzenia-ostatnich-godzin-10-listopada-7430512"
-        const polsatNewsLink = "https://www.polsatnews.pl/wiadomosc/2023-11-10/jaroslaw-kaczynski-jest-przygotowany-plan-anihilacji-polskiego-panstwa/"
+        const polsatNewsLink = "https://www.polsatnews.pl/wiadomosc/2023-11-11/podsumowanie-marszu-niepodleglosci-2023-blokada-trasy-przez-aktywistow-incydenty-z-flagami/"
         const googleNewsTVN24 = "https://news.google.com/rss/articles/CBMibmh0dHBzOi8vdHZuMjQucGwvc3dpYXQvd2llbGthLWJyeXRhbmlhLWthcm9sLWlpaS1tb3dhLXRyb25vd2EtamFraWUtc2EtZ2xvd25lLXByYWNlLWJyeXR5anNraWVnby1yemFkdS03NDI2NjQ30gEA?oc=5"
         const googleNewsUSAToday = "https://news.google.com/rss/articles/CBMicWh0dHBzOi8vd3d3LnVzYXRvZGF5LmNvbS9zdG9yeS9uZXdzL3dvcmxkL2lzcmFlbC1oYW1hcy8yMDIzLzExLzA5L2lzcmFlbC1oYW1hcy13YXItZ2F6YS1saXZlLXVwZGF0ZXMvNzE1MTQyNzUwMDcv0gEA?oc=5"
-        const encodedGoogleNews = await getGoogleNewsArticleUrl(googleNewsTVN24);
-        const newUrlWithProxy = proxyPrefix + encodeURIComponent(googleNewsTVN24) + "&render_js=true";
+        // const encodedGoogleNews = await getGoogleNewsArticleUrl(googleNewsTVN24);
+        const newUrlWithProxy = proxyPrefix + encodeURIComponent(polsatNewsLink);
         console.log(newUrlWithProxy)
 
         const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, polsatNewsConfiguration.xpaths);

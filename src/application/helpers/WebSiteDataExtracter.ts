@@ -36,15 +36,16 @@ export async function extractDataFromURLViaPuppeteer(url: string, xpaths: string
 
         if (innerHTML) {
             await browser.close();
+            console.log("extractDataFromURLViaPuppeteer done with content" + url)
             return removeJavaScriptHTMLAndWhitespace(sanitizeHtml(innerHTML))
         }
+        await browser.close();
     } else {
+        console.log("extractDataFromURLViaPuppeteer xpaths did not found content" + url)
         await browser.close();
         let source = await page.content();
         return sanitizeHtml(source)
     }
-
-    await browser.close();
 }
 
 function removeJavaScriptHTMLAndWhitespace(inputString: string): string {

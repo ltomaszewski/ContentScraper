@@ -31,6 +31,10 @@ export class ContentLinkConfigurationService {
         }
     }
 
+    async getBy(id: number): Promise<ContentLinkConfiguration | undefined> {
+        return await this.contentLinkConfigurationRepository.getById(id)
+    }
+
     async getAll(): Promise<ContentLinkConfiguration[]> {
         return await this.contentLinkConfigurationRepository.getAll();
     }

@@ -15,6 +15,19 @@ export class ContentLinkConfigurationRepository implements Repository<ContentLin
         await this.databaseRepository.insert(this.databaseName, ContentLinkConfiguration.Schema.name, entity)
     }
 
+    async getById(id: number): Promise<ContentLinkConfiguration | undefined> {
+        const result = (await this.databaseRepository.query(this.databaseName, ContentLinkConfiguration.Schema.name, function (table) { return table.filter({ id: id }) }))
+        const rawResult = await result.toArray()
+        const entities = rawResult.map((object: any) => { return ContentLinkConfiguration.createFromObject(object) })
+        await result.close()
+        if (entities.length == 1) {
+            return entities[0]
+        } else {
+            console.error("More then one entity found for id " + id)
+            return undefined
+        }
+    }
+
     async getAll(): Promise<ContentLinkConfiguration[]> {
         const result = (await this.databaseRepository.query(this.databaseName, ContentLinkConfiguration.Schema.name, function (table) { return table }))
         const rawResult = await result.toArray()

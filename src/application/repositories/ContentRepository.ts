@@ -69,7 +69,8 @@ export class ContentRepository implements Repository<Content> {
                     return table
                         .filter(r.row(Content.Schema.properties.status).eq(ContentStatus.error))
                         .filter(r.row(Content.Schema.properties.nextRetryAt).gt(0))
-                        .filter(r.row(Content.Schema.properties.nextRetryAt).lt(currentTimeInSeconds()));
+                        .filter(r.row(Content.Schema.properties.nextRetryAt).lt(currentTimeInSeconds()))
+                        .filter(r.row(Content.Schema.properties.retryCounter).lt(5));
                 }
             )
         )

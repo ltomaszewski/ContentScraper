@@ -24,6 +24,18 @@ export class NewsAggregatorDatabase {
         return sampleEntities
     }
 
+    async tweetBy(id: number): Promise<Tweet | undefined> {
+        const result = (await this.databaseRepository.query(this.databaseName, Tweet.Schema.name, function (table) { return table.filter({ id: id }) }))
+        const rawResult = await result.toArray()
+        const entities = rawResult.map((object: any) => { return Tweet.createFromObject(object) })
+        await result.close()
+        if (entities.length == 1) {
+            return entities[0]
+        } else {
+            return undefined
+        }
+    }
+
     async tweetsWithForLoop(forLoop: (tweet: Tweet) => Promise<boolean>) {
         const result = (await this.databaseRepository.query(this.databaseName, Tweet.Schema.name, function (table) { return table.orderBy({ index: r.desc('id') }) }))
         try {
@@ -48,6 +60,18 @@ export class NewsAggregatorDatabase {
         const sampleEntities = rawResult.map((object: any) => { return News.createFromObject(object) })
         await result.close()
         return sampleEntities
+    }
+
+    async newsBy(id: number): Promise<News | undefined> {
+        const result = (await this.databaseRepository.query(this.databaseName, News.Schema.name, function (table) { return table.filter({ id: id }) }))
+        const rawResult = await result.toArray()
+        const entities = rawResult.map((object: any) => { return News.createFromObject(object) })
+        await result.close()
+        if (entities.length == 1) {
+            return entities[0]
+        } else {
+            return undefined
+        }
     }
 
     async newsWithForLoop(forLoop: (news: News) => Promise<boolean>) {
