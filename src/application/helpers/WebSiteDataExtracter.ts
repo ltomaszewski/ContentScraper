@@ -1,21 +1,26 @@
 import puppeteer, { ElementHandle } from 'puppeteer';
 import sanitizeHtml from 'sanitize-html';
+import { randomDelay } from './DateUtils';
 
 export async function extractDataFromURLViaPuppeteer(url: string, xpaths: string[]) {
     console.log("extractDataFromURLViaPuppeteer " + url)
+    await randomDelay();
     const browser = await puppeteer.launch({
         headless: 'new',
         args: [
             `--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15`
         ]
     });
-    const page = await browser.newPage()
+
+    const page = await browser.newPage();
+    page.setJavaScriptEnabled(false)
     await page.goto(url)
 
     let selectedContent: Array<ElementHandle<Node>> = [];
     let xPathIndex = 0
     while (selectedContent.length == 0) {
-        selectedContent = await page.$x(xpaths[xPathIndex]);
+        const xPath = xpaths[xPathIndex]
+        selectedContent = await page.$x(xPath);
         xPathIndex = xPathIndex + 1
     }
 
@@ -57,7 +62,6 @@ function removeJavaScriptHTMLAndWhitespace(inputString: string): string {
 
     return withoutDuplicatedWhitespace.trim(); // Trim to remove leading and trailing spaces
 }
-
 
 // This one does not work perfectly, cherrio is more like jQuery and its not so sofisticated as puppeteer
 // export async function extractDataFromURLViaCheerio(url: string, xpath: string): Promise<string[]> {

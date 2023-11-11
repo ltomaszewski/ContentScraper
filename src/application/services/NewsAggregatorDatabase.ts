@@ -20,7 +20,7 @@ export class NewsAggregatorDatabase {
         const result = (await this.databaseRepository.query(this.databaseName, Tweet.Schema.name, function (table) { return table }))
         const rawResult = await result.toArray()
         const sampleEntities = rawResult.map((object: any) => { return Tweet.createFromObject(object) })
-        result.close()
+        await result.close()
         return sampleEntities
     }
 
@@ -34,19 +34,19 @@ export class NewsAggregatorDatabase {
                 nextTweet = Tweet.createFromObject(nextEntity)
                 const shouldStop = await forLoop(nextTweet)
                 if (shouldStop) {
-                    result.close()
+                    await result.close()
                     return
                 }
             }
         } catch { }
-        result.close()
+        await result.close()
     }
 
     async news(): Promise<News[]> {
         const result = (await this.databaseRepository.query(this.databaseName, News.Schema.name, function (table) { return table }))
         const rawResult = await result.toArray()
         const sampleEntities = rawResult.map((object: any) => { return News.createFromObject(object) })
-        result.close()
+        await result.close()
         return sampleEntities
     }
 
@@ -60,12 +60,12 @@ export class NewsAggregatorDatabase {
                 nextNews = News.createFromObject(nextEntity)
                 const shouldStop = await forLoop(nextNews)
                 if (shouldStop) {
-                    result.close()
+                    await result.close()
                     return
                 }
             }
         } catch { }
-        result.close()
+        await result.close()
     }
 
     async tweetsTrackChanges(change: (newTweet: Tweet | undefined, oldTweet: Tweet | undefined, err: Error) => void) {

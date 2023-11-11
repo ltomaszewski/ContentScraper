@@ -34,19 +34,41 @@ const testMode: boolean = false;
 
 (async () => {
     if (testMode) {
-        const configuration = new ContentLinkConfiguration(1,
+        const configurationReuters = new ContentLinkConfiguration(1,
             ["https://www.reuters.com/", "reut.rs"],
             ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div'],
             ["reut\\.rs/[a-zA-Z0-9]+"],
             "- Reuters");
+        const googleNewsTVN24Configuration = new ContentLinkConfigurationDTO(2,
+            ["https://tvn24.pl/"],
+            ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div', '//*[@id="__next"]/div/div[2]/div/div[2]/article/div[3]/div/div[2]'], // TODO: Create api to update xpaths for specific configuration
+            [],
+            "- TVN24");
+
+        const polsatNewsConfiguration = new ContentLinkConfigurationDTO(3,
+            ["https://www.polsatnews.pl/"],
+            ['//*[@id="body"]/div[2]/div[2]/div[1]/div[1]/main/article/div[3]', '//*[@id="body"]/div[2]/div[2]/div[1]/div[1]/main/article/div[2]'],
+            [],
+            "");
+
+        const googleNewsUSATodayConfiguration = new ContentLinkConfigurationDTO(4,
+            ["https://eu.usatoday.com/"],
+            ['//*[@id="truncationWrap"]/article'],
+            [],
+            "- USA TODAY");
 
         const proxyApiKey = "JJh2f83WN2U2iugfCC0D2ppL14Q1TrQGCVNNKw5PdDOYA7cGm5Moz9al6tfz6GKUbJtAqlKWoIQSnZnYA9"
         const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + proxyApiKey + "&url="
         const reutersShortLink = "https://reut.rs/49DuZKv"
-        const newUrlWithProxy = proxyPrefix + encodeURIComponent(reutersShortLink);
+        const tvn24Link = "https://tvn24.pl/swiat/walki-w-strefie-gazy-najwazniejsze-wydarzenia-ostatnich-godzin-10-listopada-7430512"
+        const polsatNewsLink = "https://www.polsatnews.pl/wiadomosc/2023-11-10/jaroslaw-kaczynski-jest-przygotowany-plan-anihilacji-polskiego-panstwa/"
+        const googleNewsTVN24 = "https://news.google.com/rss/articles/CBMibmh0dHBzOi8vdHZuMjQucGwvc3dpYXQvd2llbGthLWJyeXRhbmlhLWthcm9sLWlpaS1tb3dhLXRyb25vd2EtamFraWUtc2EtZ2xvd25lLXByYWNlLWJyeXR5anNraWVnby1yemFkdS03NDI2NjQ30gEA?oc=5"
+        const googleNewsUSAToday = "https://news.google.com/rss/articles/CBMicWh0dHBzOi8vd3d3LnVzYXRvZGF5LmNvbS9zdG9yeS9uZXdzL3dvcmxkL2lzcmFlbC1oYW1hcy8yMDIzLzExLzA5L2lzcmFlbC1oYW1hcy13YXItZ2F6YS1saXZlLXVwZGF0ZXMvNzE1MTQyNzUwMDcv0gEA?oc=5"
+        const encodedGoogleNews = await getGoogleNewsArticleUrl(googleNewsTVN24);
+        const newUrlWithProxy = proxyPrefix + encodeURIComponent(googleNewsTVN24) + "&render_js=true";
         console.log(newUrlWithProxy)
 
-        const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, configuration.xpaths);
+        const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, polsatNewsConfiguration.xpaths);
         console.log(content)
 
         process.exit()
@@ -72,12 +94,12 @@ const testMode: boolean = false;
 
     const contentLinkConfigurationService = new ContentLinkConfigurationService(contentLinkConfigurationRepository);
     const contentService = new ContentService(contentRepository);
-    // const googleNewsReutersConfiguration = new ContentLinkConfigurationDTO(1,
-    //     ["https://www.reuters.com/", "reut.rs"],
-    //     ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div'],
-    //     ["reut\\.rs/[a-zA-Z0-9]+"],
-    //     "- Reuters");
-    // await contentLinkConfigurationService.insert(googleNewsReutersConfiguration);
+    // const polsatNewsConfiguration = new ContentLinkConfigurationDTO(3,
+    //     ["https://www.polsatnews.pl/"],
+    //     ['//*[@id="body"]/div[2]/div[2]/div[1]/div[1]/main/article/div[3]', '//*[@id="body"]/div[2]/div[2]/div[1]/div[1]/main/article/div[2]'],
+    //     [],
+    //     "");
+    // await contentLinkConfigurationService.insert(polsatNewsConfiguration);
     // console.log(await contentLinkConfigurationService.getAll());
 
     const contentFetcherService = new ContentFetcherService(newsAggregatorDatabase, contentService, contentLinkConfigurationService);

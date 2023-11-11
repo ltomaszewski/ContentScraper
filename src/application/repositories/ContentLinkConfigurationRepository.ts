@@ -19,7 +19,7 @@ export class ContentLinkConfigurationRepository implements Repository<ContentLin
         const result = (await this.databaseRepository.query(this.databaseName, ContentLinkConfiguration.Schema.name, function (table) { return table }))
         const rawResult = await result.toArray()
         const sampleEntities = rawResult.map((object: any) => { return ContentLinkConfiguration.createFromObject(object) })
-        result.close()
+        await result.close()
         return sampleEntities
     }
 

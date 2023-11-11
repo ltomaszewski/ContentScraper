@@ -1,3 +1,4 @@
+import { getUnixTime } from "date-fns";
 import { ContentDTO } from "../../dtos/ContentDTO";
 import { ContentStatus } from "../../entities/Content";
 import { ContentLinkConfiguration } from "../../entities/ContentLinkConfiguration";
@@ -7,9 +8,8 @@ import { ContentService } from "../ContentService";
 import { News, NewsAggregatorDatabase, Tweet } from "../NewsAggregatorDatabase";
 import { checkIfUrlIsGoogleNews, checkIfUrlIsSupported, chunkArray, fetchContentViaPuppeteer, findConfigurationfor } from "./ContentFetcherUtils";
 import { ContentRequest } from "./model/ContentRequest";
+import { nextRetryDateFromNowPlusRandom } from "../../helpers/DateUtils";
 
-// TODO: Error Handling, if any errors it should be retryed after a few minutes
-// TODO: Date of create of the content, date of fetch website, date of news or tweet
 export class ContentFetcherService {
     private newsAggregatorDatabase: NewsAggregatorDatabase;
     private contentService: ContentService;
@@ -18,7 +18,7 @@ export class ContentFetcherService {
     private configurations: ContentLinkConfiguration[] = [];
 
     private queue: ContentRequest[] = [];
-    private processChunkSize: number = 20;
+    private processChunkSize: number = 3;
     private isProcessing: boolean = false
 
     constructor(
@@ -30,9 +30,7 @@ export class ContentFetcherService {
         this.contentService = contentService;
         this.contentConfigurationService = contentConfigurationService;
         setInterval(async () => {
-            if (this.isProcessing || this.queue.length == 0) {
-                return;
-            }
+            if (this.isProcessing || this.queue.length == 0) { return; }
             this.isProcessing = true
             const queueToExecute: ContentRequest[] = [];
             while (this.queue.length > 0) {
@@ -41,6 +39,12 @@ export class ContentFetcherService {
                     queueToExecute.push(item)
                 }
             }
+
+            const contentRequestsForContentWithError = await this.contentService.createListOfContentRequestOfContentWithError(this.newsAggregatorDatabase, this.contentConfigurationService)
+            for (const contentRequest of contentRequestsForContentWithError) {
+                queueToExecute.push(contentRequest)
+            }
+
             await this.flushQueue(queueToExecute)
             this.isProcessing = false
         }, 1000);
@@ -49,13 +53,15 @@ export class ContentFetcherService {
     async setup() {
         this.configurations = await this.contentConfigurationService.getAll()
 
-        await this.newsAggregatorDatabase.newsWithForLoop(async (news): Promise<boolean> => {
-            return this.processNews(news);
-        });
+        await this.newsAggregatorDatabase
+            .newsWithForLoop(async (news): Promise<boolean> => {
+                return this.processNews(news);
+            });
 
-        await this.newsAggregatorDatabase.tweetsWithForLoop(async (tweet): Promise<boolean> => {
-            return this.processTweet(tweet)
-        });
+        await this.newsAggregatorDatabase
+            .tweetsWithForLoop(async (tweet): Promise<boolean> => {
+                return this.processTweet(tweet)
+            });
 
         await this.newsAggregatorDatabase
             .newsTrackChanges((newNews, oldNews, err) => {
@@ -77,15 +83,20 @@ export class ContentFetcherService {
     private async processNews(news: News): Promise<boolean> {
         const isContentAlreadyExists = await this.contentService.checkIfContentAlreadyExistsFor(news.link)
         if (isContentAlreadyExists) {
-            console.log("News already downloaded " + news)
+            console.log("News already downloaded " + news.link)
             return false;
         }
         const isGoogleNews = checkIfUrlIsGoogleNews(news.link)
+        if (isGoogleNews) {
+            return false
+        }
         const configuration = findConfigurationfor(news, isGoogleNews, this.configurations)
         if (configuration) {
-            const contentRequest = new ContentRequest(news, undefined, configuration, isGoogleNews, [])
+            const contentRequest = new ContentRequest(news, undefined, configuration, isGoogleNews, [], false)
             console.log("Added to news queue " + news.link)
             this.queue.push(contentRequest)
+        } else {
+            console.log("No configuration found for news links " + news.link)
         }
         return false;
     }
@@ -111,9 +122,11 @@ export class ContentFetcherService {
                     return false;
                 }
                 console.log("Added tweet to queue " + extractedLinks)
-                const contentRequest = new ContentRequest(undefined, tweet, matchedWithConfiguration, false, extractedLinks)
+                const contentRequest = new ContentRequest(undefined, tweet, matchedWithConfiguration, false, extractedLinks, false)
                 this.queue.push(contentRequest)
             }
+        } else {
+            console.log("No configuration found for tweet text " + tweet.text);
         }
         return false;
     }
@@ -137,23 +150,53 @@ export class ContentFetcherService {
 
     private async processNewsQueueItem(item: ContentRequest, news: News) {
         console.log("processNewsQueueItem " + news.link)
+        let url = news.link
         try {
-            let url = news.link
             if (item.isGoogleNews) {
+                console.log("processNewsQueueItem isGoogleNews" + news.link)
                 url = await getGoogleNewsArticleUrl(url)
                 if (!checkIfUrlIsSupported(item.configuration, url)) {
+                    console.log("processNewsQueueItem not supported google news" + news.link + " url " + url)
                     return
                 }
             }
             const content = await fetchContentViaPuppeteer(url, item.configuration)
             if (content) {
                 console.log("processNewsQueueItem save content " + news.link)
-                const contentDTO = new ContentDTO(item.configuration.id, news.id, -1, ContentStatus.done, content, news.link, (item.isGoogleNews ? url : ""), [])
+                const contentDTO = new ContentDTO(
+                    item.configuration.id,
+                    news.id,
+                    -1,
+                    news.publicationDate,
+                    getUnixTime(new Date()),
+                    ContentStatus.done,
+                    content,
+                    news.link,
+                    (item.isGoogleNews ? url : ""),
+                    [],
+                    0,
+                    0)
                 await this.contentService.insert(contentDTO)
             }
         } catch (error: any) {
-            const contentDTO = new ContentDTO(item.configuration.id, news.id, -1, ContentStatus.error, "", news.link, (item.isGoogleNews ? news.link : ""), [error])
-            await this.contentService.insert(contentDTO)
+            const contentDTO = new ContentDTO(
+                item.configuration.id,
+                news.id,
+                -1,
+                -1,
+                getUnixTime(new Date()),
+                ContentStatus.error,
+                "",
+                news.link,
+                (item.isGoogleNews ? url : ""),
+                [error],
+                1,
+                nextRetryDateFromNowPlusRandom(1))
+            if (item.isRetry) {
+                await this.contentService.insertForRetry(contentDTO)
+            } else {
+                await this.contentService.insert(contentDTO)
+            }
         }
     }
 
@@ -164,12 +207,40 @@ export class ContentFetcherService {
             const content = await fetchContentViaPuppeteer("https://" + url, item.configuration)
             if (content) {
                 console.log("processTweetQueueItem save content " + item.extractedLinks)
-                const contentDTO = new ContentDTO(item.configuration.id, -1, tweet.id, ContentStatus.done, content, url, "", [])
+                const contentDTO = new ContentDTO(
+                    item.configuration.id,
+                    -1,
+                    tweet.id,
+                    tweet.postTime,
+                    getUnixTime(new Date()),
+                    ContentStatus.done,
+                    content,
+                    url,
+                    "",
+                    [],
+                    0,
+                    0)
                 await this.contentService.insert(contentDTO)
             }
         } catch (error: any) {
-            const contentDTO = new ContentDTO(item.configuration.id, -1, tweet.id, ContentStatus.error, "", url, "", [error])
-            await this.contentService.insert(contentDTO)
+            const contentDTO = new ContentDTO(
+                item.configuration.id,
+                -1,
+                tweet.id,
+                tweet.postTime,
+                getUnixTime(new Date()),
+                ContentStatus.error,
+                "",
+                url,
+                "",
+                [error],
+                1,
+                nextRetryDateFromNowPlusRandom(1))
+            if (item.isRetry) {
+                await this.contentService.insertForRetry(contentDTO)
+            } else {
+                await this.contentService.insert(contentDTO)
+            }
         }
     }
 }

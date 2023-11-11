@@ -7,18 +7,21 @@ export class ContentRequest {
     readonly configuration: ContentLinkConfiguration
     readonly isGoogleNews: boolean
     readonly extractedLinks: string[]
+    readonly isRetry: boolean
 
     constructor(
         news: News | undefined,
         tweet: Tweet | undefined,
         configuration: ContentLinkConfiguration,
         isGoogleNews: boolean,
-        extractedLinks: string[]) {
+        extractedLinks: string[],
+        isRetry: boolean) {
         this.news = news;
         this.tweet = tweet;
         this.configuration = configuration;
         this.isGoogleNews = isGoogleNews;
         this.extractedLinks = extractedLinks;
+        this.isRetry = isRetry
     }
 
     static removeDuplicateContentRequests(contentRequests: ContentRequest[]): ContentRequest[] {

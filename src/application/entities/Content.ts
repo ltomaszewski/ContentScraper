@@ -1,4 +1,5 @@
 import { ContentDTO } from "../dtos/ContentDTO";
+import { nextRetryDateFromNowPlusRandom } from "../helpers/DateUtils";
 
 export class Content {
     static Schema = {
@@ -8,39 +9,52 @@ export class Content {
             id_configuration: 'id_configuration',
             relatedNewsId: 'relatedNewsId',
             relatedTweetId: 'relatedTweetId',
+            relatedCreateAt: 'relatedCreateAt',
+            fetchedAt: 'fetchedAt',
             status: 'status',
             content: 'content',
             url: 'url',
             baseUrl: 'baseUrl',
-            errors: 'errors'
+            errors: 'errors',
+            retryCounter: 'retryCounter',
+            nextRetryAt: 'nextRetryAt'
         },
     };
     readonly id: number
     readonly id_configuration: number
     readonly relatedNewsId: number
     readonly relatedTweetId: number
+    readonly relatedCreateAt: number
+    readonly fetchedAt: number
     readonly status: ContentStatus
     readonly content: string
     readonly baseUrl: string // Added: to hold base url for future processing
     readonly url: string // Added: To save url after redirection of baseUrl, can be nil if there is no redirection
     readonly errors: string[]
-
+    readonly retryCounter: number
+    readonly nextRetryAt: number
 
     constructor(
         id: number,
         id_configuration: number,
         relatedNewsId: number,
         relatedTweetId: number,
+        relatedCreateAt: number,
+        fetchedAt: number,
         status: ContentStatus,
         content: string,
         baseUrl: string,
         url: string | undefined,
-        errors: string[]
+        errors: string[],
+        retryCounter: number,
+        nextRetryAt: number
     ) {
         this.id = id;
         this.id_configuration = id_configuration;
         this.relatedNewsId = relatedNewsId;
         this.relatedTweetId = relatedTweetId;
+        this.relatedCreateAt = relatedCreateAt;
+        this.fetchedAt = fetchedAt;
         this.status = status;
         this.content = content;
         this.baseUrl = baseUrl;
@@ -50,6 +64,44 @@ export class Content {
             this.url = ""
         }
         this.errors = errors;
+        this.retryCounter = retryCounter
+        this.nextRetryAt = nextRetryAt
+    }
+
+    createUpdatedWithUpdatedRetryAndMarkAsError(error: string): Content {
+        const newRetryCounter = this.retryCounter + 1;
+        this.errors.push(error)
+        return new Content(
+            this.id,
+            this.id_configuration,
+            this.relatedNewsId,
+            this.relatedTweetId,
+            this.relatedCreateAt,
+            this.fetchedAt,
+            ContentStatus.error,
+            this.content,
+            this.baseUrl,
+            this.url,
+            this.errors,
+            newRetryCounter,
+            nextRetryDateFromNowPlusRandom(newRetryCounter));
+    }
+
+    createUpdatedMarkStatusRetry(): Content {
+        return new Content(
+            this.id,
+            this.id_configuration,
+            this.relatedNewsId,
+            this.relatedTweetId,
+            this.relatedCreateAt,
+            this.fetchedAt,
+            ContentStatus.retry,
+            this.content,
+            this.baseUrl,
+            this.url,
+            this.errors,
+            this.retryCounter,
+            this.nextRetryAt);
     }
 
     static createFromObject(obj: any): Content {
@@ -57,18 +109,21 @@ export class Content {
         const id_configuration = obj.id_configuration;
         const relatedNewsId = obj.relatedNewsId;
         const relatedTweetId = obj.relatedTweetId;
+        const relatedCreateAt = obj.relatedCreateAt;
+        const fetchedAt = obj.fetchedAt;
         const status = obj.status;
         const content = obj.content;
         const baseUrl = obj.baseUrl;
         const url = obj.url;
         const errors = obj.errors;
-        return new Content(id, id_configuration, relatedNewsId, relatedTweetId, status, content, baseUrl, url, errors);
+        const retryCounter = obj.retryCounter;
+        const nextRetryAt = obj.nextRetryAt;
+        return new Content(id, id_configuration, relatedNewsId, relatedTweetId, relatedCreateAt, fetchedAt, status, content, baseUrl, url, errors, retryCounter, nextRetryAt);
     }
 
     static createFromDTO(dto: ContentDTO, newId: number): Content {
-        return new Content(newId, dto.id_configuration, dto.relatedNewsId, dto.relatedTweetId, dto.status, dto.content, dto.baseUrl, dto.url, dto.errors);
+        return new Content(newId, dto.id_configuration, dto.relatedNewsId, dto.relatedTweetId, dto.relatedCreateAt, dto.fetchedAt, dto.status, dto.content, dto.baseUrl, dto.url, dto.errors, dto.retryCounter, dto.nextRetryAt);
     }
 }
 
-
-export enum ContentStatus { error, done };
+export enum ContentStatus { error, done, retry };

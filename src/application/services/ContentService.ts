@@ -1,6 +1,10 @@
 import { ContentDTO } from "../dtos/ContentDTO";
 import { Content } from "../entities/Content";
 import { ContentRepository } from "../repositories/ContentRepository";
+import { checkIfUrlIsGoogleNews } from "./ContentFetcherService/ContentFetcherUtils";
+import { ContentRequest } from "./ContentFetcherService/model/ContentRequest";
+import { ContentLinkConfigurationService } from "./ContentLinkConfigurationService";
+import { NewsAggregatorDatabase } from "./NewsAggregatorDatabase";
 
 export class ContentService {
     private contentRepository: ContentRepository;
@@ -30,8 +34,42 @@ export class ContentService {
         return entity;
     }
 
+    async insertForRetry(dto: ContentDTO): Promise<boolean> {
+        const alreadyExistingContentEntity = await this.contentRepository.getEntityByBaseUrl(dto.baseUrl);
+        let newError: string = ""
+        if (dto.errors.length > 0) {
+            newError = dto.errors[0]
+        }
+        if (alreadyExistingContentEntity) {
+            const updateEntity = alreadyExistingContentEntity.createUpdatedWithUpdatedRetryAndMarkAsError(newError)
+            this.contentRepository.insert(updateEntity)
+            return true
+        } else {
+            return false
+        }
+    }
+
     async checkIfContentAlreadyExistsFor(url: string): Promise<boolean> {
         return await this.contentRepository.checkIfEntityWithBaseUrlExists(url);
+    }
+
+    async createListOfContentRequestOfContentWithError(
+        newsAggregatorDatabase: NewsAggregatorDatabase,
+        contentLinkConfigurationService: ContentLinkConfigurationService
+    ): Promise<ContentRequest[]> {
+        const retryList = await this.contentRepository.getAllForRetry()
+        const result: ContentRequest[] = []
+        for (const entity of retryList) {
+            const entityUpdatedWithStatusRetry = entity.createUpdatedMarkStatusRetry()
+            await this.contentRepository.insert(entityUpdatedWithStatusRetry)
+            const tweet = undefined
+            const news = undefined
+            const contentLinkConfiguration = undefined
+            const isGoogleNews = checkIfUrlIsGoogleNews(entity.baseUrl)
+            const contentRequest = new ContentRequest(news, tweet, contentLinkConfiguration, isGoogleNews, [entity.baseUrl], true)
+            result.push(contentRequest)
+        }
+        return result
     }
 
     async getAll(): Promise<Content[]> {
