@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-      "start": "tsc --build --clean && tsc && pm2 start src/ecosystem.config.cjs --env production",
-      "stop": "pm2 stop all"
+    "start": "tsc --build --clean && tsc && pm2 start src/ecosystem.config.cjs --env production",
+    "stop": "pm2 stop all"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +23,6 @@
     "puppeteer": "^21.4.1",
     "rethinkdb": "^2.4.2",
     "sanitize-html": "^2.11.0",
-    "xmldom": "^0.6.0",
     "xpath": "^0.0.33"
   },
   "devDependencies": {

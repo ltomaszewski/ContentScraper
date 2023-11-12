@@ -29,7 +29,7 @@ const args = process.argv;
 export const configuration: CLIConfiguration = CLIConfiguration.fromCommandLineArguments(args);
 
 // Logging the configuration details
-console.log("Application started with configuration: " + configuration.arg1 + ", environment: " + configuration.env);
+console.log("Application started environment: " + configuration.env);
 
 const testMode: boolean = false;
 
