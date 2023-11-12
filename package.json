@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+      "start": "tsc --build --clean && tsc && pm2 start src/ecosystem.config.cjs --env production",
+      "stop": "pm2 stop all"
   },
   "keywords": [],
   "author": "",
