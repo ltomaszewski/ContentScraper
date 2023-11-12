@@ -1,6 +1,3 @@
-import * as xpath from 'xpath';
-import * as xmldom from 'xmldom';
-import axios from "axios";
 import { ContentLinkConfiguration } from "../../entities/ContentLinkConfiguration";
 import { extractDataFromURLViaPuppeteer } from "../../helpers/WebSiteDataExtracter";
 import { News } from "../NewsAggregatorDatabase";
@@ -15,7 +12,7 @@ export function chunkArray(array: any[], chunkSize: number): any[][] {
 
 export function findConfigurationfor(news: News, isGoogleNews: boolean, configurations: ContentLinkConfiguration[]): ContentLinkConfiguration | undefined {
     for (const configuration of configurations) {
-        if (isGoogleNews) {
+        if (isGoogleNews && configuration.googleNewsTitleSuffix.length > 0) {
             if (news.title.endsWith(configuration.googleNewsTitleSuffix)) {
                 return configuration
             }

@@ -57,6 +57,12 @@ const testMode: boolean = false;
             [],
             "- USA TODAY");
 
+        const googleNewsTheGuardianConfiguration = new ContentLinkConfigurationDTO(5,
+            ["https://www.theguardian.com"],
+            ['//*[@id="maincontent"]'],
+            [],
+            "- The Guardian");
+
         const proxyApiKey = "JJh2f83WN2U2iugfCC0D2ppL14Q1TrQGCVNNKw5PdDOYA7cGm5Moz9al6tfz6GKUbJtAqlKWoIQSnZnYA9"
         const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + proxyApiKey + "&url="
         const reutersShortLink = "https://reut.rs/49DuZKv"
@@ -64,11 +70,12 @@ const testMode: boolean = false;
         const polsatNewsLink = "https://www.polsatnews.pl/wiadomosc/2023-11-11/podsumowanie-marszu-niepodleglosci-2023-blokada-trasy-przez-aktywistow-incydenty-z-flagami/"
         const googleNewsTVN24 = "https://news.google.com/rss/articles/CBMibmh0dHBzOi8vdHZuMjQucGwvc3dpYXQvd2llbGthLWJyeXRhbmlhLWthcm9sLWlpaS1tb3dhLXRyb25vd2EtamFraWUtc2EtZ2xvd25lLXByYWNlLWJyeXR5anNraWVnby1yemFkdS03NDI2NjQ30gEA?oc=5"
         const googleNewsUSAToday = "https://news.google.com/rss/articles/CBMicWh0dHBzOi8vd3d3LnVzYXRvZGF5LmNvbS9zdG9yeS9uZXdzL3dvcmxkL2lzcmFlbC1oYW1hcy8yMDIzLzExLzA5L2lzcmFlbC1oYW1hcy13YXItZ2F6YS1saXZlLXVwZGF0ZXMvNzE1MTQyNzUwMDcv0gEA?oc=5"
-        // const encodedGoogleNews = await getGoogleNewsArticleUrl(googleNewsTVN24);
-        const newUrlWithProxy = proxyPrefix + encodeURIComponent(polsatNewsLink);
+        const googleNewsTheGurdian = "https://news.google.com/rss/articles/CBMie2h0dHBzOi8vd3d3LnRoZWd1YXJkaWFuLmNvbS93b3JsZC8yMDIzL25vdi8xMi9wb3BlLWZyYW5jaXMtZGlzbWlzc2VzLWNvbnNlcnZhdGl2ZS10ZXhhcy1iaXNob3AtYW5kLWNyaXRpYy1qb3NlcGgtc3RyaWNrbGFuZNIBe2h0dHBzOi8vYW1wLnRoZWd1YXJkaWFuLmNvbS93b3JsZC8yMDIzL25vdi8xMi9wb3BlLWZyYW5jaXMtZGlzbWlzc2VzLWNvbnNlcnZhdGl2ZS10ZXhhcy1iaXNob3AtYW5kLWNyaXRpYy1qb3NlcGgtc3RyaWNrbGFuZA?oc=5"
+        const encodedGoogleNews = await getGoogleNewsArticleUrl(googleNewsTheGurdian);
+        const newUrlWithProxy = proxyPrefix + encodeURIComponent(encodedGoogleNews);
         console.log(newUrlWithProxy)
 
-        const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, polsatNewsConfiguration.xpaths);
+        const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, googleNewsTheGuardianConfiguration.xpaths);
         console.log(content)
 
         process.exit()
@@ -94,12 +101,12 @@ const testMode: boolean = false;
 
     const contentLinkConfigurationService = new ContentLinkConfigurationService(contentLinkConfigurationRepository);
     const contentService = new ContentService(contentRepository);
-    // const polsatNewsConfiguration = new ContentLinkConfigurationDTO(3,
-    //     ["https://www.polsatnews.pl/"],
-    //     ['//*[@id="body"]/div[2]/div[2]/div[1]/div[1]/main/article/div[3]', '//*[@id="body"]/div[2]/div[2]/div[1]/div[1]/main/article/div[2]'],
+    // const googleNewsTheGuardianConfiguration = new ContentLinkConfigurationDTO(5,
+    //     ["https://www.theguardian.com"],
+    //     ['//*[@id="maincontent"]'],
     //     [],
-    //     "");
-    // await contentLinkConfigurationService.insert(polsatNewsConfiguration);
+    //     "- The Guardian");
+    // await contentLinkConfigurationService.insert(googleNewsTheGuardianConfiguration);
     // console.log(await contentLinkConfigurationService.getAll());
 
     const contentFetcherService = new ContentFetcherService(newsAggregatorDatabase, contentService, contentLinkConfigurationService);

@@ -61,6 +61,7 @@ export class ContentFetcherService {
     async setup() {
         this.configurations = await this.contentConfigurationService.getAll()
 
+        // TODO: Get latest content from database, take fetchTime and on init ask for new tweets and  news after that time
         await this.newsAggregatorDatabase
             .newsWithForLoop(async (news): Promise<boolean> => {
                 return this.processNews(news);
@@ -89,15 +90,16 @@ export class ContentFetcherService {
     }
 
     private async processNews(news: News): Promise<boolean> {
+        // TODO: I have the gurdian via google news and direct rss. This method needs to check if content exists from any source
         const isContentAlreadyExists = await this.contentService.checkIfContentAlreadyExistsFor(news.link)
         if (isContentAlreadyExists) {
             console.log("News already downloaded " + news.link)
             return false;
         }
         const isGoogleNews = checkIfUrlIsGoogleNews(news.link)
-        if (isGoogleNews) {
-            return false
-        }
+        // if (isGoogleNews) {
+        //     return false
+        // }
         const configuration = findConfigurationfor(news, isGoogleNews, this.configurations)
         if (configuration) {
             const contentRequest = new ContentRequest(news, undefined, configuration, isGoogleNews, [], false)
