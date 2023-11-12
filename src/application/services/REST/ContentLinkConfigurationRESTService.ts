@@ -10,7 +10,6 @@ export class ContentLinkConfigurationRESTService {
     }
 
     installEndpoints(basePath: string, app: express.Application) {
-        // Add a source to the database
         app.post(basePath + "/contentLinkConfiguration/add", async (req, res) => {
             try {
                 const sourceDTO = ContentLinkConfigurationDTO.createFromObject(req.body);
@@ -21,7 +20,16 @@ export class ContentLinkConfigurationRESTService {
             }
         });
 
-        // Remove a source from the database
+        app.post(basePath + "/contentLinkConfiguration/replace", async (req, res) => {
+            try {
+                const sourceDTO = ContentLinkConfigurationDTO.createFromObject(req.body);
+                const result = await this.contentLinkConfigurationService.insertWithForce(sourceDTO);
+                res.status(201).json(result);
+            } catch (error: any) {
+                res.status(400).json({ error: error.message });
+            }
+        });
+
         app.delete(basePath + "/contentLinkConfiguration/delete/:id", async (req, res) => {
             const id = parseInt(req.params.id, 10);
             if (!id) {
@@ -29,14 +37,13 @@ export class ContentLinkConfigurationRESTService {
             }
 
             try {
-                const removedSource = await this.contentLinkConfigurationService.delete(id)
+                await this.contentLinkConfigurationService.delete(id)
                 res.sendStatus(204);
             } catch (error: any) {
                 res.status(400).json({ error: error.message });
             }
         });
 
-        // List all sources in the database
         app.get(basePath + "/contentLinkConfiguration/all", async (req, res) => {
             const contentLinkConfigurations = await this.contentLinkConfigurationService.getAll();
             res.json(contentLinkConfigurations);

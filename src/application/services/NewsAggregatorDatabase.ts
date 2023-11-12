@@ -36,8 +36,20 @@ export class NewsAggregatorDatabase {
         }
     }
 
-    async tweetsWithForLoop(forLoop: (tweet: Tweet) => Promise<boolean>) {
-        const result = (await this.databaseRepository.query(this.databaseName, Tweet.Schema.name, function (table) { return table.orderBy({ index: r.desc('id') }) }))
+    async tweetsWithForLoop(forLoop: (tweet: Tweet) => Promise<boolean>, lastContentCreatedTime: number | undefined) {
+        const result = (await this.databaseRepository.query(
+            this.databaseName,
+            Tweet.Schema.name,
+            function (table) {
+                if (lastContentCreatedTime) {
+                    return table
+                        .orderBy({ index: r.desc('id') })
+                        .filter(r.row('postTime').gt(lastContentCreatedTime))
+                } else {
+                    return table
+                        .orderBy({ index: r.desc('id') })
+                }
+            }))
         try {
             let nextEntity
             let nextTweet
@@ -74,8 +86,20 @@ export class NewsAggregatorDatabase {
         }
     }
 
-    async newsWithForLoop(forLoop: (news: News) => Promise<boolean>) {
-        const result = (await this.databaseRepository.query(this.databaseName, News.Schema.name, function (table) { return table.orderBy({ index: r.desc('id') }) }))
+    async newsWithForLoop(forLoop: (news: News) => Promise<boolean>, lastContentCreatedTime: number | undefined) {
+        const result = (await this.databaseRepository.query(
+            this.databaseName,
+            News.Schema.name,
+            function (table) {
+                if (lastContentCreatedTime) {
+                    return table
+                        .orderBy({ index: r.desc('id') })
+                        .filter(r.row('fetchedAt').gt(lastContentCreatedTime))
+                } else {
+                    return table
+                        .orderBy({ index: r.desc('id') })
+                }
+            }))
         try {
             let nextEntity
             let nextNews

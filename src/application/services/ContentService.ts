@@ -94,4 +94,8 @@ export class ContentService {
     async getAll(): Promise<Content[]> {
         return await this.contentRepository.getAll();
     }
+
+    async getTheNewsestEntity(): Promise<Content | undefined> {
+        return await this.contentRepository.getTheNewestEntity();
+    }
 }

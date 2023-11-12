@@ -59,18 +59,20 @@ export class ContentFetcherService {
     }
 
     async setup() {
-        this.configurations = await this.contentConfigurationService.getAll()
+        this.configurations = await this.contentConfigurationService.getAll();
+        const theNewestContent = await this.contentService.getTheNewsestEntity();
 
-        // TODO: Get latest content from database, take fetchTime and on init ask for new tweets and  news after that time
         await this.newsAggregatorDatabase
             .newsWithForLoop(async (news): Promise<boolean> => {
                 return this.processNews(news);
-            });
+            },
+                theNewestContent?.fetchedAt);
 
         await this.newsAggregatorDatabase
             .tweetsWithForLoop(async (tweet): Promise<boolean> => {
                 return this.processTweet(tweet)
-            });
+            },
+                theNewestContent?.fetchedAt);
 
         await this.newsAggregatorDatabase
             .newsTrackChanges((newNews, oldNews, err) => {
@@ -97,9 +99,6 @@ export class ContentFetcherService {
             return false;
         }
         const isGoogleNews = checkIfUrlIsGoogleNews(news.link)
-        // if (isGoogleNews) {
-        //     return false
-        // }
         const configuration = findConfigurationfor(news, isGoogleNews, this.configurations)
         if (configuration) {
             const contentRequest = new ContentRequest(news, undefined, configuration, isGoogleNews, [], false)

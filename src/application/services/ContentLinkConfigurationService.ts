@@ -20,6 +20,16 @@ export class ContentLinkConfigurationService {
         return entity;
     }
 
+    async insertWithForce(dto: ContentLinkConfigurationDTO) {
+        if (dto.id) {
+            const entity = ContentLinkConfiguration.createFromDTO(dto, dto.id);
+            await this.contentLinkConfigurationRepository.insert(entity);
+            return entity;
+        } else {
+            throw Error("Id is required");
+        }
+    }
+
     async delete(id: number) {
         const contentLinkConfigurations = await this.contentLinkConfigurationRepository.getAll()
         const contentLinkConfiguration = await contentLinkConfigurations.find(x => x.id === id)
