@@ -20,6 +20,7 @@ import { NewsAggregatorDatabase } from "./application/services/NewsAggregatorDat
 import { ContentLinkConfigurationDTO } from "./application/dtos/ContentLinkConfigurationDTO";
 import { ContentFetcherService } from "./application/services/ContentFetcherService/ContentFetcherService";
 import { ContentLinkConfiguration } from "./application/entities/ContentLinkConfiguration";
+import { ImportRESTService } from "./application/services/REST/ImportRESTService";
 
 // Extracting command line arguments
 const args = process.argv;
@@ -117,6 +118,7 @@ const testMode: boolean = false;
 
     // Create REST services
     const baseApi = "/api/v1";
+    const importRESTService = new ImportRESTService(databaseName, databaseRepository);
     const contentLinkConfigurationRESTService = new ContentLinkConfigurationRESTService(contentLinkConfigurationService);
     const contentRESTService = new ContentRESTService(contentService);
     const PORT = configuration.env == Env.Prod ? 997 : 697
@@ -124,15 +126,12 @@ const testMode: boolean = false;
     // Install REST services
     contentLinkConfigurationRESTService.installEndpoints(baseApi, app);
     contentRESTService.installEndpoints(baseApi, app);
+    importRESTService.installEndpoints(baseApi, app);
 
     // Start the server
     app.listen(PORT, () => {
         console.log(`REST server is running on port ${PORT}`);
     });
-
-    // await newsAggregatorDatabase.tweetsWithForLoop((tweet) => {
-    //     console.log(tweet)
-    // })
 
     await contentFetcherService.setup()
 })();

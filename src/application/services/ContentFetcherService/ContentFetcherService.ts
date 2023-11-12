@@ -92,7 +92,6 @@ export class ContentFetcherService {
     }
 
     private async processNews(news: News): Promise<boolean> {
-        // TODO: I have the gurdian via google news and direct rss. This method needs to check if content exists from any source
         const isContentAlreadyExists = await this.contentService.checkIfContentAlreadyExistsFor(news.link)
         if (isContentAlreadyExists) {
             console.log("News already downloaded " + news.link)
