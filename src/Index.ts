@@ -21,6 +21,9 @@ import { ContentLinkConfigurationDTO } from "./application/dtos/ContentLinkConfi
 import { ContentFetcherService } from "./application/services/ContentFetcherService/ContentFetcherService";
 import { ContentLinkConfiguration } from "./application/entities/ContentLinkConfiguration";
 import { ImportRESTService } from "./application/services/REST/ImportRESTService";
+import { TVN24Scraper } from "./application/services/Scarpers/TVN24Scraper";
+import { ScarperRunner } from "./application/services/Scarpers/ScarperRunner";
+import { BankierScraper } from "./application/services/Scarpers/BankierScraper";
 
 // Extracting command line arguments
 const args = process.argv;
@@ -31,53 +34,57 @@ export const configuration: CLIConfiguration = CLIConfiguration.fromCommandLineA
 // Logging the configuration details
 console.log("Application started environment: " + configuration.env);
 
-const testMode: boolean = false;
+const testMode: boolean = true;
 
 (async () => {
     if (testMode) {
-        const configurationReuters = new ContentLinkConfiguration(1,
-            ["https://www.reuters.com/", "reut.rs"],
-            ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div', '//*[@id="__next"]/div/div[4]/div[1]/article/div[1]'],
-            ["reut\\.rs/[a-zA-Z0-9]+"],
-            "- Reuters");
-        const googleNewsTVN24Configuration = new ContentLinkConfigurationDTO(2,
-            ["https://tvn24.pl/"],
-            ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div', '//*[@id="__next"]/div/div[2]/div/div[2]/article/div[3]/div/div[2]'], // TODO: Create api to update xpaths for specific configuration
-            [],
-            "- TVN24");
+        // const configurationReuters = new ContentLinkConfiguration(1,
+        //     ["https://www.reuters.com/", "reut.rs"],
+        //     ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div', '//*[@id="__next"]/div/div[4]/div[1]/article/div[1]'],
+        //     ["reut\\.rs/[a-zA-Z0-9]+"],
+        //     "- Reuters");
+        // const googleNewsTVN24Configuration = new ContentLinkConfigurationDTO(2,
+        //     ["https://tvn24.pl/"],
+        //     ['//*[@id="main-content"]/article/div[1]/div/div/div/div[2]', '//*[@id="main-content"]/article/div[1]/div', '//*[@id="__next"]/div/div[2]/div/div[2]/article/div[3]/div/div[2]'], // TODO: Create api to update xpaths for specific configuration
+        //     [],
+        //     "- TVN24");
 
-        const polsatNewsConfiguration = new ContentLinkConfigurationDTO(3,
-            ["https://www.polsatnews.pl/"],
-            ['//*[@id="body"]/div[2]/div[2]/div[1]/div[1]/main/article/div[3]', '//*[@id="body"]/div[2]/div[2]/div[1]/div[1]/main/article/div[2]'],
-            [],
-            "");
+        // const polsatNewsConfiguration = new ContentLinkConfigurationDTO(3,
+        //     ["https://www.polsatnews.pl/"],
+        //     ['//*[@id="body"]/div[2]/div[2]/div[1]/div[1]/main/article/div[3]', '//*[@id="body"]/div[2]/div[2]/div[1]/div[1]/main/article/div[2]'],
+        //     [],
+        //     "");
 
-        const googleNewsUSATodayConfiguration = new ContentLinkConfigurationDTO(4,
-            ["https://eu.usatoday.com/"],
-            ['//*[@id="truncationWrap"]/article'],
-            [],
-            "- USA TODAY");
+        // const googleNewsUSATodayConfiguration = new ContentLinkConfigurationDTO(4,
+        //     ["https://eu.usatoday.com/"],
+        //     ['//*[@id="truncationWrap"]/article'],
+        //     [],
+        //     "- USA TODAY");
 
-        const googleNewsTheGuardianConfiguration = new ContentLinkConfigurationDTO(5,
-            ["https://www.theguardian.com"],
-            ['//*[@id="maincontent"]'],
-            [],
-            "- The Guardian");
+        // const googleNewsTheGuardianConfiguration = new ContentLinkConfigurationDTO(5,
+        //     ["https://www.theguardian.com"],
+        //     ['//*[@id="maincontent"]'],
+        //     [],
+        //     "- The Guardian");
 
-        const proxyApiKey = "JJh2f83WN2U2iugfCC0D2ppL14Q1TrQGCVNNKw5PdDOYA7cGm5Moz9al6tfz6GKUbJtAqlKWoIQSnZnYA9"
-        const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + proxyApiKey + "&url="
-        const reutersShortLink = "https://reut.rs/49DuZKv"
-        const tvn24Link = "https://tvn24.pl/swiat/walki-w-strefie-gazy-najwazniejsze-wydarzenia-ostatnich-godzin-10-listopada-7430512"
-        const polsatNewsLink = "https://www.polsatnews.pl/wiadomosc/2023-11-11/podsumowanie-marszu-niepodleglosci-2023-blokada-trasy-przez-aktywistow-incydenty-z-flagami/"
-        const googleNewsTVN24 = "https://news.google.com/rss/articles/CBMibmh0dHBzOi8vdHZuMjQucGwvc3dpYXQvd2llbGthLWJyeXRhbmlhLWthcm9sLWlpaS1tb3dhLXRyb25vd2EtamFraWUtc2EtZ2xvd25lLXByYWNlLWJyeXR5anNraWVnby1yemFkdS03NDI2NjQ30gEA?oc=5"
-        const googleNewsUSAToday = "https://news.google.com/rss/articles/CBMicWh0dHBzOi8vd3d3LnVzYXRvZGF5LmNvbS9zdG9yeS9uZXdzL3dvcmxkL2lzcmFlbC1oYW1hcy8yMDIzLzExLzA5L2lzcmFlbC1oYW1hcy13YXItZ2F6YS1saXZlLXVwZGF0ZXMvNzE1MTQyNzUwMDcv0gEA?oc=5"
-        const googleNewsTheGurdian = "https://news.google.com/rss/articles/CBMie2h0dHBzOi8vd3d3LnRoZWd1YXJkaWFuLmNvbS93b3JsZC8yMDIzL25vdi8xMi9wb3BlLWZyYW5jaXMtZGlzbWlzc2VzLWNvbnNlcnZhdGl2ZS10ZXhhcy1iaXNob3AtYW5kLWNyaXRpYy1qb3NlcGgtc3RyaWNrbGFuZNIBe2h0dHBzOi8vYW1wLnRoZWd1YXJkaWFuLmNvbS93b3JsZC8yMDIzL25vdi8xMi9wb3BlLWZyYW5jaXMtZGlzbWlzc2VzLWNvbnNlcnZhdGl2ZS10ZXhhcy1iaXNob3AtYW5kLWNyaXRpYy1qb3NlcGgtc3RyaWNrbGFuZA?oc=5"
-        const encodedGoogleNews = await getGoogleNewsArticleUrl(googleNewsTheGurdian);
-        const newUrlWithProxy = proxyPrefix + encodeURIComponent(encodedGoogleNews);
-        console.log(newUrlWithProxy)
+        // const proxyApiKey = "JJh2f83WN2U2iugfCC0D2ppL14Q1TrQGCVNNKw5PdDOYA7cGm5Moz9al6tfz6GKUbJtAqlKWoIQSnZnYA9"
+        // const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + proxyApiKey + "&url="
+        // const reutersShortLink = "https://reut.rs/49DuZKv"
+        // const tvn24Link = "https://tvn24.pl/swiat/walki-w-strefie-gazy-najwazniejsze-wydarzenia-ostatnich-godzin-10-listopada-7430512"
+        // const polsatNewsLink = "https://www.polsatnews.pl/wiadomosc/2023-11-11/podsumowanie-marszu-niepodleglosci-2023-blokada-trasy-przez-aktywistow-incydenty-z-flagami/"
+        // const googleNewsTVN24 = "https://news.google.com/rss/articles/CBMibmh0dHBzOi8vdHZuMjQucGwvc3dpYXQvd2llbGthLWJyeXRhbmlhLWthcm9sLWlpaS1tb3dhLXRyb25vd2EtamFraWUtc2EtZ2xvd25lLXByYWNlLWJyeXR5anNraWVnby1yemFkdS03NDI2NjQ30gEA?oc=5"
+        // const googleNewsUSAToday = "https://news.google.com/rss/articles/CBMicWh0dHBzOi8vd3d3LnVzYXRvZGF5LmNvbS9zdG9yeS9uZXdzL3dvcmxkL2lzcmFlbC1oYW1hcy8yMDIzLzExLzA5L2lzcmFlbC1oYW1hcy13YXItZ2F6YS1saXZlLXVwZGF0ZXMvNzE1MTQyNzUwMDcv0gEA?oc=5"
+        // const googleNewsTheGurdian = "https://news.google.com/rss/articles/CBMie2h0dHBzOi8vd3d3LnRoZWd1YXJkaWFuLmNvbS93b3JsZC8yMDIzL25vdi8xMi9wb3BlLWZyYW5jaXMtZGlzbWlzc2VzLWNvbnNlcnZhdGl2ZS10ZXhhcy1iaXNob3AtYW5kLWNyaXRpYy1qb3NlcGgtc3RyaWNrbGFuZNIBe2h0dHBzOi8vYW1wLnRoZWd1YXJkaWFuLmNvbS93b3JsZC8yMDIzL25vdi8xMi9wb3BlLWZyYW5jaXMtZGlzbWlzc2VzLWNvbnNlcnZhdGl2ZS10ZXhhcy1iaXNob3AtYW5kLWNyaXRpYy1qb3NlcGgtc3RyaWNrbGFuZA?oc=5"
+        // const encodedGoogleNews = await getGoogleNewsArticleUrl(googleNewsTheGurdian);
+        // const newUrlWithProxy = proxyPrefix + encodeURIComponent(encodedGoogleNews);
+        // console.log(newUrlWithProxy)
 
-        const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, googleNewsTheGuardianConfiguration.xpaths);
-        console.log(content)
+        // const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, googleNewsTheGuardianConfiguration.xpaths);
+        // console.log(content)
+
+        const scarper = new BankierScraper(true);
+        const scarperRunner = new ScarperRunner();
+        await scarperRunner.run([scarper]);
 
         process.exit()
     }

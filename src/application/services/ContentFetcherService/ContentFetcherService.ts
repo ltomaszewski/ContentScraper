@@ -9,6 +9,8 @@ import { News, NewsAggregatorDatabase, Tweet } from "../NewsAggregatorDatabase";
 import { checkIfUrlIsGoogleNews, checkIfUrlIsSupported, chunkArray, fetchContentViaPuppeteer, findConfigurationfor } from "./ContentFetcherUtils";
 import { ContentRequest } from "./model/ContentRequest";
 import { currentTimeInSeconds, nextRetryDateFromNowPlusRandom } from "../../helpers/DateUtils";
+import { configuration } from "../../../Index";
+import { Env } from "../../../config/Constants";
 
 export class ContentFetcherService {
     private newsAggregatorDatabase: NewsAggregatorDatabase;
@@ -61,18 +63,23 @@ export class ContentFetcherService {
     async setup() {
         this.configurations = await this.contentConfigurationService.getAll();
         const theNewestContent = await this.contentService.getTheNewsestEntity();
+        let latestFetcheTime = theNewestContent?.fetchedAt;
+
+        if (configuration.env == Env.Dev) [
+            latestFetcheTime = currentTimeInSeconds()
+        ]
 
         await this.newsAggregatorDatabase
             .newsWithForLoop(async (news): Promise<boolean> => {
                 return this.processNews(news);
             },
-                theNewestContent?.fetchedAt);
+                latestFetcheTime);
 
         await this.newsAggregatorDatabase
             .tweetsWithForLoop(async (tweet): Promise<boolean> => {
                 return this.processTweet(tweet)
             },
-                theNewestContent?.fetchedAt);
+                latestFetcheTime);
 
         await this.newsAggregatorDatabase
             .newsTrackChanges((newNews, oldNews, err) => {
