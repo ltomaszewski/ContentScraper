@@ -1,12 +1,16 @@
 export class ScraperItemDTO {
     readonly url: string;
     readonly date?: string;
+    readonly timestamp: number;
     readonly title?: string | null;
+    readonly description?: string | null
 
-    constructor(url: string, title?: string | null, date?: string | null) {
+    constructor(url: string, title?: string | null, date?: string | null, description?: string | null) {
         this.url = url;
         this.title = title;
         this.date = date ?? this.getCurrentFormattedDate();
+        this.timestamp = this.convertToTimestamp(this.date);
+        this.description = description
     }
 
     private getCurrentFormattedDate(): string {
@@ -23,4 +27,10 @@ export class ScraperItemDTO {
     private padWithZero(number: number): string {
         return number < 10 ? `0${number}` : number.toString();
     }
+
+    private convertToTimestamp(dateStr: string): number {
+        const date = new Date(dateStr);
+        return date.getTime() / 1000;
+    }
+
 }

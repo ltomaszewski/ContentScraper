@@ -28,32 +28,20 @@ export class ReutersScarper implements Scraper {
             console.log("Extracting article hrefs...");
             // Use Array.from to maintain the order of elements
             return Array.from(elements, (element) => {
-                const hrefs = element.querySelectorAll('a[href]');
-                const hrefPath = Array.from(hrefs, (href) => href?.getAttribute('href'))
-                    .filter((str): str is string => str !== undefined)
-                    // Reduce to find the longest string
-                    .reduce((a, b) => a.length > b.length ? a : b, "");
-                const href = `https://www.reuters.com${hrefPath}`;
+                const href = element.querySelector('div > a[href]');
+                const url = `https://www.reuters.com${href}`;
 
-                const textContents = element.querySelectorAll('p[data-testid="Body"]');
-                const text = Array.from(textContents, (content) => {
-                    return content.textContent; // Added return statement
-                });
+                const textContents = href?.textContent
 
-                const textContents2 = element.querySelectorAll(`h3 > a[href*="${hrefPath}"]`);
-                const text2 = Array.from(textContents2, (content) => {
-                    return content.textContent; // Added return statement
-                });
+                const timeElement = element.querySelector('div > time');
+                const time = timeElement?.getAttribute('datetime');
 
-
-                return { href: href, html: element.innerHTML, textContent: text, textContents2: textContents2 };
+                return { url: url, textContents: textContents, time: time };
             }).filter((attr) => attr !== null);
         });
 
-        console.log(articles);
+        const news = articles.map(article => { return new ScraperItemDTO(article.url, article.textContents, article.time) });
 
-        // const news = articles.map(article => { return new ScraperItemDTO(article.href, article.title, article.date) });
-
-        return [];
+        return news;
     }
 }

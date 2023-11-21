@@ -26,6 +26,8 @@ import { TVN24Scraper } from "./application/services/Scarpers/TVN24Scraper";
 import { ScarperRunner } from "./application/services/Scarpers/ScarperRunner";
 import { BankierScraper } from "./application/services/Scarpers/BankierScraper";
 import { ReutersScarper } from './application/services/Scarpers/ReutersScarper.js';
+import { TradingEconomicsScarper } from './application/services/Scarpers/TradingEconomicsScarper.js';
+import { PAPScarper } from './application/services/Scarpers/PAPScarper.js';
 
 // Extracting command line arguments
 const args = process.argv;
@@ -84,9 +86,17 @@ const testMode: boolean = true;
         // const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, googleNewsTheGuardianConfiguration.xpaths);
         // console.log(content)
 
-        const scarper = new ReutersScarper(true);
+        const bankierScarper = new BankierScraper(true);
+        const tvn24Scarper = new TVN24Scraper(true);
+        const reutersScarper = new ReutersScarper(true);
+        const papScarper = new PAPScarper(true)
+        const tradingEconomicsScarper = new TradingEconomicsScarper(true);
         const scarperRunner = new ScarperRunner();
-        await scarperRunner.run([scarper]);
+        const data = await scarperRunner.scalp([papScarper]);
+
+        data.forEach(item => {
+            console.log(item.timestamp)
+        });
 
         process.exit()
     }

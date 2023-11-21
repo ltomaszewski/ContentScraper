@@ -4,6 +4,10 @@ export async function randomDelay() {
     await delay(getRandomDelay(3, 15));
 }
 
+export async function randomScalpDelay() {
+    await delay(getRandomDelay(10, 15));
+}
+
 export function nextRetryDateFromNowPlusRandom(retryCounter: number) {
     const timeBackoff = getRandomDelay(3, 15) * 60 * retryCounter;
     return currentTimeInSeconds() + timeBackoff;
