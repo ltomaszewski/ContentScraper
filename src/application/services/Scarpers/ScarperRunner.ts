@@ -16,7 +16,7 @@ export class ScarperRunner {
         try {
             for (let scraper of scrapers) {
                 await randomDelay();
-                (await scraper.scrape(browser))
+                (await scraper.scalp(browser))
                     .forEach((item) => {
                         result.push(item);
                     });

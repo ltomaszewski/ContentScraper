@@ -28,6 +28,9 @@ import { BankierScraper } from "./application/services/Scarpers/BankierScraper";
 import { ReutersScarper } from './application/services/Scarpers/ReutersScarper.js';
 import { TradingEconomicsScarper } from './application/services/Scarpers/TradingEconomicsScarper.js';
 import { PAPScarper } from './application/services/Scarpers/PAPScarper.js';
+import { ScraperItemRepository } from './application/repositories/ScraperItemRepository.js';
+import { ScraperItemService } from './application/services/ScraperItemService.js';
+import { WebsiteScraperService } from './application/services/WebsiteScraperService.js';
 
 // Extracting command line arguments
 const args = process.argv;
@@ -38,7 +41,7 @@ export const configuration: CLIConfiguration = CLIConfiguration.fromCommandLineA
 // Logging the configuration details
 console.log("Application started environment: " + configuration.env);
 
-const testMode: boolean = true;
+const testMode: boolean = false;
 
 (async () => {
     if (testMode) {
@@ -118,18 +121,16 @@ const testMode: boolean = true;
     // Creating all repositories and services
     const contentLinkConfigurationRepository = new ContentLinkConfigurationRepository(databaseRepository, databaseName);
     const contentRepository = new ContentRepository(databaseRepository, databaseName);
+    const scarperItemRepository = new ScraperItemRepository(databaseRepository, databaseName);
 
     const contentLinkConfigurationService = new ContentLinkConfigurationService(contentLinkConfigurationRepository);
     const contentService = new ContentService(contentRepository);
-    // const googleNewsTheGuardianConfiguration = new ContentLinkConfigurationDTO(5,
-    //     ["https://www.theguardian.com"],
-    //     ['//*[@id="maincontent"]'],
-    //     [],
-    //     "- The Guardian");
-    // await contentLinkConfigurationService.insert(googleNewsTheGuardianConfiguration);
-    // console.log(await contentLinkConfigurationService.getAll());
+    const scarperItemService = new ScraperItemService(scarperItemRepository);
 
-    const contentFetcherService = new ContentFetcherService(newsAggregatorDatabase, contentService, contentLinkConfigurationService);
+    // const contentFetcherService = new ContentFetcherService(newsAggregatorDatabase, contentService, contentLinkConfigurationService);
+    const websiteScarperService = new WebsiteScraperService(scarperItemService);
+
+    websiteScarperService.start()
 
     // Setup REST Server
     const app = express();
@@ -152,5 +153,5 @@ const testMode: boolean = true;
         console.log(`REST server is running on port ${PORT}`);
     });
 
-    await contentFetcherService.setup()
+    // await contentFetcherService.setup()
 })();

@@ -17,7 +17,7 @@ export class ReutersScarper implements Scraper {
         }
     }
 
-    async scrape(browser: Browser): Promise<ScraperItemDTO[]> {
+    async scalp(browser: Browser): Promise<ScraperItemDTO[]> {
         const page = await browser.newPage()
         page.setJavaScriptEnabled(false)
         console.log(`Navigating to ${this.url}...`);
@@ -29,7 +29,7 @@ export class ReutersScarper implements Scraper {
             // Use Array.from to maintain the order of elements
             return Array.from(elements, (element) => {
                 const href = element.querySelector('div > a[href]');
-                const url = `https://www.reuters.com${href}`;
+                const url = `${href}`;
 
                 const textContents = href?.textContent
 

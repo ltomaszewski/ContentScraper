@@ -17,7 +17,7 @@ export class BankierScraper implements Scraper {
         }
     }
 
-    async scrape(browser: Browser): Promise<ScraperItemDTO[]> {
+    async scalp(browser: Browser): Promise<ScraperItemDTO[]> {
         const page = await browser.newPage()
         page.setJavaScriptEnabled(false)
         console.log(`Navigating to ${this.url}...`);
