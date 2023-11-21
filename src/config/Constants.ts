@@ -13,3 +13,19 @@ export const DatabaseForceDrop = false;
 
 export const baseDatabaseName = "CONTENT_FETCHER";
 export const baseNewsAggregatorDatabaseName = "NEWS_AGGREGATOR";
+
+function getEnvVar(key: string): string {
+    const value = process.env[key];
+    if (value === undefined) {
+        throw new Error(`Environment variable ${key} is not set`);
+    }
+    return value;
+}
+
+export interface ProcessEnv {
+    NARF_AI_KEY: string;
+}
+
+export const dotEnv: ProcessEnv = {
+    NARF_AI_KEY: getEnvVar('NARF_AI_KEY')
+};

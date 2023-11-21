@@ -12,7 +12,7 @@ export class ScarperRunner {
         });
         try {
             for (let scraper of scrapers) {
-                await randomDelay();
+                // await randomDelay();
                 await scraper.scrape(browser);
             }
         } finally {

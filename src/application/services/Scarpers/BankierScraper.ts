@@ -1,5 +1,7 @@
 import { Browser } from "puppeteer";
 import { Scraper } from "./Scarper";
+import { dotEnv } from "../../../config/Constants.js";
+import { ScraperItemDTO } from "../../dtos/ScraperItemDTO.js";
 
 export class BankierScraper implements Scraper {
     private url: string;
@@ -7,8 +9,7 @@ export class BankierScraper implements Scraper {
     constructor(useProxy: boolean) {
         const url = "https://www.bankier.pl/wiadomosc/"
         if (useProxy) {
-            const proxyApiKey = "JJh2f83WN2U2iugfCC0D2ppL14Q1TrQGCVNNKw5PdDOYA7cGm5Moz9al6tfz6GKUbJtAqlKWoIQSnZnYA9"
-            const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + proxyApiKey + "&url="
+            const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + dotEnv.NARF_AI_KEY + "&url="
             const newUrlWithProxy = proxyPrefix + encodeURIComponent(url);
             this.url = newUrlWithProxy
         } else {
@@ -16,11 +17,10 @@ export class BankierScraper implements Scraper {
         }
     }
 
-    async scrape(browser: Browser): Promise<void> {
+    async scrape(browser: Browser): Promise<ScraperItemDTO[]> {
         const page = await browser.newPage()
         page.setJavaScriptEnabled(false)
         console.log(`Navigating to ${this.url}...`);
-        // Navigate to the selected page
         await page.goto(this.url);
 
         const articles = await page.evaluate(() => {
@@ -37,7 +37,9 @@ export class BankierScraper implements Scraper {
             });
         });
 
-        console.log(articles)
+        const news = articles.map(article => { return new ScraperItemDTO(article.href, article.title, article.date) });
+
+        return news;
     }
 
 }

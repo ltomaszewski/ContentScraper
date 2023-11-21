@@ -1,6 +1,6 @@
 import { Browser } from "puppeteer";
+import { ScraperItemDTO } from "../../dtos/ScraperItemDTO.js";
 
-// Define the interface for BLABLAScraper
 export interface Scraper {
-    scrape(browser: Browser): Promise<void>;
+    scrape(browser: Browser): Promise<ScraperItemDTO[]>;
 }

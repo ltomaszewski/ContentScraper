@@ -14,7 +14,8 @@ export class ContentDTO {
     readonly retryCounter: number;
     readonly nextRetryAt: number;
 
-    constructor(id_configuration: number,
+    constructor(
+        id_configuration: number,
         relatedNewsId: number,
         relatedTweetId: number,
         relatedCreateAt: number,

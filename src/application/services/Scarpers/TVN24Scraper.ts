@@ -1,5 +1,7 @@
 import { Browser } from "puppeteer";
 import { Scraper } from "./Scarper";
+import { dotEnv } from "../../../config/Constants.js";
+import { ScraperItemDTO } from "../../dtos/ScraperItemDTO.js";
 
 export class TVN24Scraper implements Scraper {
     private url: string;
@@ -7,8 +9,7 @@ export class TVN24Scraper implements Scraper {
     constructor(useProxy: boolean) {
         const url = "https://www.tvn24.pl"
         if (useProxy) {
-            const proxyApiKey = "JJh2f83WN2U2iugfCC0D2ppL14Q1TrQGCVNNKw5PdDOYA7cGm5Moz9al6tfz6GKUbJtAqlKWoIQSnZnYA9"
-            const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + proxyApiKey + "&url="
+            const proxyPrefix = "https://scraping.narf.ai/api/v1/?api_key=" + dotEnv.NARF_AI_KEY + "&url="
             const newUrlWithProxy = proxyPrefix + encodeURIComponent(url);
             this.url = newUrlWithProxy
         } else {
@@ -16,7 +17,7 @@ export class TVN24Scraper implements Scraper {
         }
     }
 
-    async scrape(browser: Browser) {
+    async scrape(browser: Browser): Promise<ScraperItemDTO[]> {
         const page = await browser.newPage()
         page.setJavaScriptEnabled(false)
         console.log(`Navigating to ${this.url}...`);
@@ -51,6 +52,14 @@ export class TVN24Scraper implements Scraper {
             }).filter((attr) => attr !== null);
         });
 
-        console.log(uniqueAttributes);
+        const news = uniqueAttributes
+            .flatMap(article => {
+                if (article) {
+                    return new ScraperItemDTO(article.href, article.title)
+                }
+            })
+            .filter((item): item is ScraperItemDTO => item !== undefined)
+
+        return news;
     }
 }

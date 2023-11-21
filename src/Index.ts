@@ -2,6 +2,7 @@
 
 
 // Importing CLIConfiguration class for handling Command Line Interface (CLI) arguments
+import 'dotenv/config';
 import express from "express";
 import { ContentLinkConfigurationRepository } from "./application/repositories/ContentLinkConfigurationRepository";
 import { DatabaseRepository } from "./application/repositories/DatabaseRepository/DatabaseRepository";
@@ -24,6 +25,7 @@ import { ImportRESTService } from "./application/services/REST/ImportRESTService
 import { TVN24Scraper } from "./application/services/Scarpers/TVN24Scraper";
 import { ScarperRunner } from "./application/services/Scarpers/ScarperRunner";
 import { BankierScraper } from "./application/services/Scarpers/BankierScraper";
+import { ReutersScarper } from './application/services/Scarpers/ReutersScarper.js';
 
 // Extracting command line arguments
 const args = process.argv;
@@ -82,7 +84,7 @@ const testMode: boolean = true;
         // const content = await extractDataFromURLViaPuppeteer(newUrlWithProxy, googleNewsTheGuardianConfiguration.xpaths);
         // console.log(content)
 
-        const scarper = new BankierScraper(true);
+        const scarper = new ReutersScarper(true);
         const scarperRunner = new ScarperRunner();
         await scarperRunner.run([scarper]);
 
