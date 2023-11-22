@@ -97,10 +97,6 @@ const testMode: boolean = false;
         const scarperRunner = new ScarperRunner();
         const data = await scarperRunner.scalp([papScarper]);
 
-        data.forEach(item => {
-            console.log(item.timestamp)
-        });
-
         process.exit()
     }
     process.setMaxListeners(0)

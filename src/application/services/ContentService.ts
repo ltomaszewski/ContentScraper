@@ -5,6 +5,7 @@ import { checkIfUrlIsGoogleNews } from "./ContentFetcherService/ContentFetcherUt
 import { ContentRequest } from "./ContentFetcherService/model/ContentRequest";
 import { ContentLinkConfigurationService } from "./ContentLinkConfigurationService";
 import { NewsAggregatorDatabase } from "./NewsAggregatorDatabase";
+import { ScraperItemService } from "./ScraperItemService.js";
 
 export class ContentService {
     private contentRepository: ContentRepository;
@@ -64,7 +65,8 @@ export class ContentService {
 
     async createListOfContentRequestOfContentWithError(
         newsAggregatorDatabase: NewsAggregatorDatabase,
-        contentLinkConfigurationService: ContentLinkConfigurationService
+        contentLinkConfigurationService: ContentLinkConfigurationService,
+        scarperItemService: ScraperItemService
     ): Promise<ContentRequest[]> {
         const retryList = await this.contentRepository.getAllForRetry()
         const result: ContentRequest[] = []
@@ -79,10 +81,14 @@ export class ContentService {
             if (entity.relatedNewsId !== -1) {
                 news = await newsAggregatorDatabase.newsBy(entity.relatedNewsId)
             }
+            let scarperItem = undefined
+            if (entity.relatedScraperItemId !== -1) {
+                scarperItem = await scarperItemService.getById(entity.relatedScraperItemId)
+            }
             const contentLinkConfiguration = await contentLinkConfigurationService.getBy(entity.id_configuration)
-            if (contentLinkConfiguration && ((news === undefined) || (tweet === undefined))) {
+            if (contentLinkConfiguration && ((news === undefined) || (tweet === undefined) || (scarperItem === undefined))) {
                 const isGoogleNews = checkIfUrlIsGoogleNews(entity.baseUrl)
-                const contentRequest = new ContentRequest(news, tweet, contentLinkConfiguration, isGoogleNews, [entity.baseUrl], true)
+                const contentRequest = new ContentRequest(news, tweet, scarperItem, contentLinkConfiguration, isGoogleNews, [entity.baseUrl], true)
                 result.push(contentRequest)
             } else {
                 console.error("ContentLinkConfiguration is null or news and tweet has value. At this point Content can be connected only to one, tweet or news. Can not be attached to both. Entity id " + entity.id)

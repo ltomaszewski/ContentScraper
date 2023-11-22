@@ -21,7 +21,7 @@ export class BankierScraper implements Scraper {
         const page = await browser.newPage()
         page.setJavaScriptEnabled(false)
         console.log(`Navigating to ${this.url}...`);
-        await page.goto(this.url);
+        await page.goto(this.url).catch(e => console.error(e));;
 
         const articles = await page.evaluate(() => {
             const articleElements = Array.from(document.querySelectorAll('.article'));
@@ -39,7 +39,10 @@ export class BankierScraper implements Scraper {
 
         const news = articles.map(article => { return new ScraperItemDTO(article.href, article.title, article.date) });
 
+        if (news.length == 0) {
+            console.error('BankierScraper empty articles for url ' + this.url);
+        }
+
         return news;
     }
-
 }

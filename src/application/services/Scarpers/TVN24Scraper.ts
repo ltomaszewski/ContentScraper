@@ -22,7 +22,7 @@ export class TVN24Scraper implements Scraper {
         page.setJavaScriptEnabled(false)
         console.log(`Navigating to ${this.url}...`);
         // Navigate to the selected page
-        await page.goto(this.url);
+        await page.goto(this.url).catch(e => console.error(e));
         // Wait for the required DOM to be rendered
         await page.waitForSelector('.page-content');
 
@@ -59,6 +59,10 @@ export class TVN24Scraper implements Scraper {
                 }
             })
             .filter((item): item is ScraperItemDTO => item !== undefined)
+
+        if (news.length == 0) {
+            console.error('TVN24Scraper empty news for url ' + this.url);
+        }
 
         return news;
     }

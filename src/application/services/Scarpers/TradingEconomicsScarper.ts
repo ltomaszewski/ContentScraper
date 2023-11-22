@@ -21,7 +21,7 @@ export class TradingEconomicsScarper implements Scraper {
         const page = await browser.newPage()
         page.setJavaScriptEnabled(false)
         console.log(`Navigating to ${this.url}...`);
-        await page.goto(this.url);
+        await page.goto(this.url).catch(e => console.error(e));
 
         const articles = await page.evaluate(() => {
             const articleElements = Array.from(document.querySelectorAll('.home-tile-outside'));
@@ -37,6 +37,10 @@ export class TradingEconomicsScarper implements Scraper {
         });
 
         const news = articles.map(article => { return new ScraperItemDTO(article.href, article.text, null, article.textDescription) });
+
+        if (news.length == 0) {
+            console.error('TradingEconomicsScarper empty articles for url ' + this.url);
+        }
 
         return news;
     }

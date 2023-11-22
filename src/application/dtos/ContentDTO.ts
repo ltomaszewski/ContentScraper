@@ -13,6 +13,7 @@ export class ContentDTO {
     readonly errors: string[];
     readonly retryCounter: number;
     readonly nextRetryAt: number;
+    readonly relatedScraperItemId: number;
 
     constructor(
         id_configuration: number,
@@ -26,7 +27,8 @@ export class ContentDTO {
         url: string | undefined,
         errors: string[],
         retryCounter: number,
-        nextRetryAt: number) {
+        nextRetryAt: number,
+        relatedScraperItemId: number) {
         this.id_configuration = id_configuration;
         this.relatedNewsId = relatedNewsId;
         this.relatedTweetId = relatedTweetId;
@@ -39,6 +41,7 @@ export class ContentDTO {
         this.errors = errors;
         this.retryCounter = retryCounter
         this.nextRetryAt = nextRetryAt
+        this.relatedScraperItemId = relatedScraperItemId
     }
 
     static createFromObject(obj: any): ContentDTO {
@@ -54,6 +57,7 @@ export class ContentDTO {
         const errors = obj.errors;
         const retryCounter = obj.retryCounter;
         const nextRetryAt = obj.nextRetryAt;
+        const relatedScraperItemId = obj.relatedScraperItemId
         return new ContentDTO(
             id_configuration,
             relatedNewsId,
@@ -66,6 +70,7 @@ export class ContentDTO {
             url,
             errors,
             retryCounter,
-            nextRetryAt);
+            nextRetryAt,
+            relatedScraperItemId);
     }
 }

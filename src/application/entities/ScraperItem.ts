@@ -6,7 +6,8 @@ export class ScraperItem {
             date: 'date',
             timestamp: 'timestamp',
             title: 'title',
-            description: 'description'
+            description: 'description',
+            fetchedAt: 'fetchedAt'
         },
     };
 
@@ -16,13 +17,15 @@ export class ScraperItem {
     readonly timestamp: number;
     readonly title: string;
     readonly description: string;
+    readonly fetchedAt: number;
 
     constructor(
         id: number,
         url: string,
         title: string | null = null,
         date: string | null = null,
-        description: string | null = null
+        description: string | null = null,
+        fetchedAt: number
     ) {
         this.id = id;
         this.url = url;
@@ -30,6 +33,7 @@ export class ScraperItem {
         this.date = date ?? '';
         this.timestamp = ScraperItem.convertToTimestamp(this.date);
         this.description = description ?? '';
+        this.fetchedAt = fetchedAt
     }
 
     private static convertToTimestamp(dateStr: string): number {
@@ -39,10 +43,12 @@ export class ScraperItem {
 
     static createFromObject(obj: any): ScraperItem {
         return new ScraperItem(
+            obj.id,
             obj.url,
             obj.title,
             obj.date,
-            obj.description
+            obj.description,
+            obj.fetchedAt
         );
     }
 
@@ -52,7 +58,8 @@ export class ScraperItem {
             dto.url,
             dto.title ?? null,
             dto.date ?? null,
-            dto.description ?? null
+            dto.description ?? null,
+            dto.fetchedAt
         );
     }
 }

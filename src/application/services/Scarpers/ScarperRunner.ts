@@ -15,7 +15,7 @@ export class ScarperRunner {
         const result: ScraperItemDTO[] = [];
         try {
             for (let scraper of scrapers) {
-                await randomDelay();
+                // await randomDelay();
                 (await scraper.scalp(browser))
                     .forEach((item) => {
                         result.push(item);

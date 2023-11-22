@@ -21,7 +21,7 @@ export class ReutersScarper implements Scraper {
         const page = await browser.newPage()
         page.setJavaScriptEnabled(false)
         console.log(`Navigating to ${this.url}...`);
-        await page.goto(this.url, { waitUntil: 'domcontentloaded' });
+        await page.goto(this.url, { waitUntil: 'domcontentloaded' }).catch(e => console.error(e));
 
         const articles = await page.$$eval('[class^="home-page-grid__story"]', (elements) => {
             const uniqueHrefSet = new Set<string>();
@@ -41,6 +41,10 @@ export class ReutersScarper implements Scraper {
         });
 
         const news = articles.map(article => { return new ScraperItemDTO(article.url, article.textContents, article.time) });
+
+        if (news.length == 0) {
+            console.error('ReutersScarper empty articles for url ' + this.url);
+        }
 
         return news;
     }

@@ -19,9 +19,10 @@ export class PAPScarper implements Scraper {
 
     async scalp(browser: Browser): Promise<ScraperItemDTO[]> {
         const page = await browser.newPage()
-        page.setJavaScriptEnabled(false)
+        await page.setJavaScriptEnabled(false)
+
         console.log(`Navigating to ${this.url}...`);
-        await page.goto(this.url);
+        await page.goto(this.url, { waitUntil: 'domcontentloaded' }).catch(e => console.error(e));
 
         const articles = await page.evaluate(() => {
             const articleElements = Array.from(document.querySelectorAll('li.news > div > div.textWrapper'));
@@ -34,6 +35,10 @@ export class PAPScarper implements Scraper {
                 return { href, text };
             });
         });
+
+        if (articles.length == 0) {
+            console.error('PAPScarper empty articles for url ' + this.url);
+        }
 
         const news = articles.map(article => { return new ScraperItemDTO(article.href, article.text, null, null) });
 

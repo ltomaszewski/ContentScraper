@@ -1,9 +1,12 @@
+import { currentTimeInSeconds } from "../helpers/DateUtils.js";
+
 export class ScraperItemDTO {
     readonly url: string;
     readonly date?: string;
     readonly timestamp: number;
     readonly title?: string | null;
     readonly description?: string | null
+    readonly fetchedAt: number;
 
     constructor(url: string, title?: string | null, date?: string | null, description?: string | null) {
         this.url = url;
@@ -11,6 +14,7 @@ export class ScraperItemDTO {
         this.date = date ?? this.getCurrentFormattedDate();
         this.timestamp = this.convertToTimestamp(this.date);
         this.description = description
+        this.fetchedAt = currentTimeInSeconds();
     }
 
     private getCurrentFormattedDate(): string {

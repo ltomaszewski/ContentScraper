@@ -1,3 +1,4 @@
+import { last } from "cheerio/lib/api/traversing.js";
 import { ScraperItemDTO } from "../dtos/ScraperItemDTO.js";
 import { ScraperItem } from "../entities/ScraperItem";
 import { ScraperItemRepository } from "../repositories/ScraperItemRepository";
@@ -15,7 +16,7 @@ export class ScraperItemService {
             throw new Error("An item with the same URL already exists.");
         }
 
-        const theNewestEntity = (await this.repository.getTheNewestEntity())
+        const theNewestEntity = (await this.repository.getTheNewestEntity());
         let newId
         if (theNewestEntity) {
             newId = theNewestEntity.id + 1;
@@ -23,7 +24,19 @@ export class ScraperItemService {
             newId = 0;
         }
 
-        const entity = ScraperItem.createFromDTO(scraperItemDTO, newId)
+        const entity = ScraperItem.createFromDTO(scraperItemDTO, newId);
         await this.repository.insert(entity);
+    }
+
+    async getAllWithForLoop(forLoop: (scraperItem: ScraperItem) => Promise<boolean>, lastFetchedAt: number | undefined) {
+        return await this.repository.scraperItemWithForLoop(forLoop, lastFetchedAt);
+    }
+
+    async getById(id: number): Promise<ScraperItem | undefined> {
+        return this.repository.getById(id);
+    }
+
+    async trackChanges(change: (newTweet: ScraperItem | undefined, oldTweet: ScraperItem | undefined, err: Error) => void) {
+        return this.repository.trackChanges(change);
     }
 }

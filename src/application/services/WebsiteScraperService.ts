@@ -6,6 +6,7 @@ import { TVN24Scraper } from "./Scarpers/TVN24Scraper.js";
 import { ReutersScarper } from "./Scarpers/ReutersScarper.js";
 import { PAPScarper } from "./Scarpers/PAPScarper.js";
 import { TradingEconomicsScarper } from "./Scarpers/TradingEconomicsScarper.js";
+import { randomDelay } from "../helpers/DateUtils.js";
 
 export class WebsiteScraperService {
     private scrapers: Scraper[];
@@ -16,7 +17,7 @@ export class WebsiteScraperService {
         const bankierScarper = new BankierScraper(false);
         const tvn24Scarper = new TVN24Scraper(false);
         const reutersScarper = new ReutersScarper(false);
-        const papScarper = new PAPScarper(false)
+        const papScarper = new PAPScarper(true)
         const tradingEconomicsScarper = new TradingEconomicsScarper(false);
 
         this.scrapers = [bankierScarper, tvn24Scarper, reutersScarper, papScarper, tradingEconomicsScarper];
@@ -49,6 +50,7 @@ export class WebsiteScraperService {
             ]
         });
         for (const scraper of this.scrapers) {
+            await randomDelay()
             try {
                 const items = await scraper.scalp(browser);
                 for (const item of items) {

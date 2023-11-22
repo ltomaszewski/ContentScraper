@@ -9,6 +9,7 @@ export class Content {
             id_configuration: 'id_configuration',
             relatedNewsId: 'relatedNewsId',
             relatedTweetId: 'relatedTweetId',
+            relatedScraperItemId: 'relatedScraperItemId',
             relatedCreateAt: 'relatedCreateAt',
             fetchedAt: 'fetchedAt',
             status: 'status',
@@ -24,6 +25,7 @@ export class Content {
     readonly id_configuration: number
     readonly relatedNewsId: number
     readonly relatedTweetId: number
+    readonly relatedScraperItemId: number
     readonly relatedCreateAt: number
     readonly fetchedAt: number
     readonly status: ContentStatus
@@ -47,7 +49,8 @@ export class Content {
         url: string | undefined,
         errors: string[],
         retryCounter: number,
-        nextRetryAt: number
+        nextRetryAt: number,
+        relatedScraperItemId: number
     ) {
         this.id = id;
         this.id_configuration = id_configuration;
@@ -66,6 +69,7 @@ export class Content {
         this.errors = errors;
         this.retryCounter = retryCounter
         this.nextRetryAt = nextRetryAt
+        this.relatedScraperItemId = relatedScraperItemId
     }
 
     createUpdatedWithUpdatedRetryAndMarkAsError(error: string): Content {
@@ -84,7 +88,9 @@ export class Content {
             this.url,
             this.errors,
             newRetryCounter,
-            nextRetryDateFromNowPlusRandom(newRetryCounter));
+            nextRetryDateFromNowPlusRandom(newRetryCounter),
+            this.relatedScraperItemId
+        );
     }
 
     createUpdatedMarkStatusRetry(): Content {
@@ -101,7 +107,9 @@ export class Content {
             this.url,
             this.errors,
             this.retryCounter,
-            this.nextRetryAt);
+            this.nextRetryAt,
+            this.relatedScraperItemId
+        );
     }
 
     static createFromObject(obj: any): Content {
@@ -118,11 +126,12 @@ export class Content {
         const errors = obj.errors;
         const retryCounter = obj.retryCounter;
         const nextRetryAt = obj.nextRetryAt;
-        return new Content(id, id_configuration, relatedNewsId, relatedTweetId, relatedCreateAt, fetchedAt, status, content, baseUrl, url, errors, retryCounter, nextRetryAt);
+        const relatedScraperItemId = obj.relatedScraperItemId
+        return new Content(id, id_configuration, relatedNewsId, relatedTweetId, relatedCreateAt, fetchedAt, status, content, baseUrl, url, errors, retryCounter, nextRetryAt, relatedScraperItemId);
     }
 
     static createFromDTO(dto: ContentDTO, newId: number): Content {
-        return new Content(newId, dto.id_configuration, dto.relatedNewsId, dto.relatedTweetId, dto.relatedCreateAt, dto.fetchedAt, dto.status, dto.content, dto.baseUrl, dto.url, dto.errors, dto.retryCounter, dto.nextRetryAt);
+        return new Content(newId, dto.id_configuration, dto.relatedNewsId, dto.relatedTweetId, dto.relatedCreateAt, dto.fetchedAt, dto.status, dto.content, dto.baseUrl, dto.url, dto.errors, dto.retryCounter, dto.nextRetryAt, dto.relatedScraperItemId);
     }
 }
 

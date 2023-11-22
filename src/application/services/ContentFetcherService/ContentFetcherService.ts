@@ -11,11 +11,13 @@ import { ContentRequest } from "./model/ContentRequest";
 import { currentTimeInSeconds, nextRetryDateFromNowPlusRandom } from "../../helpers/DateUtils";
 import { configuration } from "../../../Index";
 import { Env } from "../../../config/Constants";
+import { ScraperItemService } from "../ScraperItemService.js";
 
 export class ContentFetcherService {
     private newsAggregatorDatabase: NewsAggregatorDatabase;
     private contentService: ContentService;
     private contentConfigurationService: ContentLinkConfigurationService;
+    private scarperItemService: ScraperItemService;
 
     private configurations: ContentLinkConfiguration[] = [];
 
@@ -27,12 +29,14 @@ export class ContentFetcherService {
     constructor(
         newsAggregatorDatabase: NewsAggregatorDatabase,
         contentService: ContentService,
-        contentConfigurationService: ContentLinkConfigurationService
+        contentConfigurationService: ContentLinkConfigurationService,
+        scarperItemService: ScraperItemService
     ) {
         this.newsAggregatorDatabase = newsAggregatorDatabase;
         this.contentService = contentService;
         this.contentConfigurationService = contentConfigurationService;
-        this.lastProcessingTime = currentTimeInSeconds()
+        this.scarperItemService = scarperItemService;
+        this.lastProcessingTime = currentTimeInSeconds();
         setInterval(async () => {
             if ((currentTimeInSeconds() - this.lastProcessingTime > 120) && !this.isProcessing) {
                 const contentRequestsForContentWithError = await this.contentService.createListOfContentRequestOfContentWithError(this.newsAggregatorDatabase, this.contentConfigurationService)
@@ -107,7 +111,7 @@ export class ContentFetcherService {
         const isGoogleNews = checkIfUrlIsGoogleNews(news.link)
         const configuration = findConfigurationfor(news, isGoogleNews, this.configurations)
         if (configuration) {
-            const contentRequest = new ContentRequest(news, undefined, configuration, isGoogleNews, [], false)
+            const contentRequest = new ContentRequest(news, undefined, undefined, configuration, isGoogleNews, [], false)
             console.log("Added to news queue " + news.link)
             this.queue.push(contentRequest)
         } else {
@@ -137,7 +141,7 @@ export class ContentFetcherService {
                     return false;
                 }
                 console.log("Added tweet to queue " + extractedLinks)
-                const contentRequest = new ContentRequest(undefined, tweet, matchedWithConfiguration, false, extractedLinks, false)
+                const contentRequest = new ContentRequest(undefined, tweet, undefined, matchedWithConfiguration, false, extractedLinks, false)
                 this.queue.push(contentRequest)
             }
         } else {
@@ -190,7 +194,9 @@ export class ContentFetcherService {
                     (item.isGoogleNews ? url : ""),
                     [],
                     0,
-                    0)
+                    0,
+                    -1
+                )
                 if (item.isRetry) {
                     await this.contentService.insertAfterRetryAndSuccess(contentDTO)
                 } else {
@@ -210,7 +216,9 @@ export class ContentFetcherService {
                 (item.isGoogleNews ? url : ""),
                 [error],
                 1,
-                nextRetryDateFromNowPlusRandom(1))
+                nextRetryDateFromNowPlusRandom(1),
+                -1
+            )
             if (item.isRetry) {
                 await this.contentService.insertForRetry(contentDTO)
             } else {
@@ -238,7 +246,9 @@ export class ContentFetcherService {
                     "",
                     [],
                     0,
-                    0)
+                    0,
+                    -1
+                )
                 if (item.isRetry) {
                     await this.contentService.insertAfterRetryAndSuccess(contentDTO)
                 } else {
@@ -258,7 +268,9 @@ export class ContentFetcherService {
                 "",
                 [error],
                 1,
-                nextRetryDateFromNowPlusRandom(1))
+                nextRetryDateFromNowPlusRandom(1),
+                -1
+            )
             if (item.isRetry) {
                 await this.contentService.insertForRetry(contentDTO)
             } else {
