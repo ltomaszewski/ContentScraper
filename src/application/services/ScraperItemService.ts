@@ -1,4 +1,3 @@
-import { last } from "cheerio/lib/api/traversing.js";
 import { ScraperItemDTO } from "../dtos/ScraperItemDTO.js";
 import { ScraperItem } from "../entities/ScraperItem";
 import { ScraperItemRepository } from "../repositories/ScraperItemRepository";

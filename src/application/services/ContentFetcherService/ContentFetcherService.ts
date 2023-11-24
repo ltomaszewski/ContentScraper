@@ -39,7 +39,13 @@ export class ContentFetcherService {
         this.lastProcessingTime = currentTimeInSeconds();
         setInterval(async () => {
             if ((currentTimeInSeconds() - this.lastProcessingTime > 120) && !this.isProcessing) {
-                const contentRequestsForContentWithError = await this.contentService.createListOfContentRequestOfContentWithError(this.newsAggregatorDatabase, this.contentConfigurationService)
+                const contentRequestsForContentWithError = await this
+                    .contentService
+                    .createListOfContentRequestOfContentWithError(
+                        this.newsAggregatorDatabase,
+                        this.contentConfigurationService,
+                        this.scarperItemService
+                    )
                 for (const contentRequest of contentRequestsForContentWithError) {
                     this.queue.push(contentRequest)
                 }
