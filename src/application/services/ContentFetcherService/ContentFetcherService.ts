@@ -5,8 +5,8 @@ import { ContentLinkConfiguration } from "../../entities/ContentLinkConfiguratio
 import { getGoogleNewsArticleUrl } from "../../helpers/GoogleUtils";
 import { ContentLinkConfigurationService } from "../ContentLinkConfigurationService";
 import { ContentService } from "../ContentService";
-import { News, NewsAggregatorDatabase, Tweet } from "../NewsAggregatorDatabase";
-import { checkIfUrlIsGoogleNews, checkIfUrlIsSupported, chunkArray, fetchContentViaPuppeteer, findConfigurationfor } from "./ContentFetcherUtils";
+import { News, NewsAggregatorDatabase, ScraperItem, Tweet } from "../NewsAggregatorDatabase";
+import { checkIfUrlIsGoogleNews, checkIfUrlIsSupported, chunkArray, fetchContentViaPuppeteer, findConfigurationWithScarperItem, findConfigurationfor } from "./ContentFetcherUtils";
 import { ContentRequest } from "./model/ContentRequest";
 import { currentTimeInSeconds, nextRetryDateFromNowPlusRandom } from "../../helpers/DateUtils";
 
@@ -75,6 +75,12 @@ export class ContentFetcherService {
                 theNewestContent?.fetchedAt);
 
         await this.newsAggregatorDatabase
+            .scraperItemWithForLoop(async (scraperItem) => {
+                return this.processScarperItem(scraperItem)
+            },
+                theNewestContent?.fetchedAt);
+
+        await this.newsAggregatorDatabase
             .newsTrackChanges((newNews, oldNews, err) => {
                 if (oldNews === undefined && newNews) {
                     console.log("NewsTrackChanges " + newNews.link)
@@ -89,6 +95,14 @@ export class ContentFetcherService {
                     this.processTweet(newTweet)
                 }
             });
+
+        await this.newsAggregatorDatabase
+            .scraperItemTrackChanges((newScarperItem, oldScraperItem, err) => {
+                if (oldScraperItem === undefined && newScarperItem) {
+                    console.log("TweetsTrackChanges " + newScarperItem.url)
+                    this.processScarperItem(newScarperItem)
+                }
+            });
     }
 
     private async processNews(news: News): Promise<boolean> {
@@ -100,7 +114,7 @@ export class ContentFetcherService {
         const isGoogleNews = checkIfUrlIsGoogleNews(news.link)
         const configuration = findConfigurationfor(news, isGoogleNews, this.configurations)
         if (configuration) {
-            const contentRequest = new ContentRequest(news, undefined, configuration, isGoogleNews, [], false)
+            const contentRequest = new ContentRequest(news, undefined, undefined, configuration, isGoogleNews, [], false)
             console.log("Added to news queue " + news.link)
             this.queue.push(contentRequest)
         } else {
@@ -139,6 +153,23 @@ export class ContentFetcherService {
         return false;
     }
 
+    private async processScarperItem(scarperItem: ScraperItem): Promise<boolean> {
+        const isContentAlreadyExists = await this.contentService.checkIfContentAlreadyExistsFor(scarperItem.url)
+        if (isContentAlreadyExists) {
+            console.log("ScraperItem already downloaded " + scarperItem.url)
+            return false;
+        }
+        const configuration = findConfigurationWithScarperItem(scarperItem, this.configurations)
+        if (configuration) {
+            const contentRequest = new ContentRequest(undefined, undefined, scarperItem, configuration, false, [], false)
+            console.log("Added to ScraperItem queue " + scarperItem.url)
+            this.queue.push(contentRequest)
+        } else {
+            console.log("No configuration found for scraperItem links " + scarperItem.url)
+        }
+        return false;
+    }
+
     private async flushQueue(queue: ContentRequest[]) {
         const uniqueQueue = ContentRequest.removeDuplicateContentRequests(queue)
         const chunks = chunkArray(uniqueQueue, this.processChunkSize);
@@ -147,10 +178,14 @@ export class ContentFetcherService {
             await Promise.all(chunk.map(async (item) => {
                 const newsValue = item.news
                 const tweetValue = item.tweet
+                const scarperItemValue = item.scarperItem
+
                 if (newsValue) {
                     await this.processNewsQueueItem(item, newsValue);
                 } else if (tweetValue) {
                     await this.processTweetQueueItem(item, tweetValue);
+                } else if (scarperItemValue) {
+                    await this.processScarperItemQueueItem(item, scarperItemValue);
                 }
             }));
         }
@@ -175,6 +210,7 @@ export class ContentFetcherService {
                     item.configuration.id,
                     news.id,
                     -1,
+                    -1,
                     news.publicationDate,
                     getUnixTime(new Date()),
                     ContentStatus.done,
@@ -194,6 +230,7 @@ export class ContentFetcherService {
             const contentDTO = new ContentDTO(
                 item.configuration.id,
                 news.id,
+                -1,
                 -1,
                 -1,
                 getUnixTime(new Date()),
@@ -223,6 +260,7 @@ export class ContentFetcherService {
                     item.configuration.id,
                     -1,
                     tweet.id,
+                    -1,
                     tweet.postTime,
                     getUnixTime(new Date()),
                     ContentStatus.done,
@@ -243,12 +281,63 @@ export class ContentFetcherService {
                 item.configuration.id,
                 -1,
                 tweet.id,
+                -1,
                 tweet.postTime,
                 getUnixTime(new Date()),
                 ContentStatus.error,
                 "",
                 url,
                 "",
+                [error],
+                1,
+                nextRetryDateFromNowPlusRandom(1))
+            if (item.isRetry) {
+                await this.contentService.insertForRetry(contentDTO)
+            } else {
+                await this.contentService.insert(contentDTO)
+            }
+        }
+    }
+
+    private async processScarperItemQueueItem(item: ContentRequest, scarperItem: ScraperItem) {
+        console.log("processScarperItem " + scarperItem.url)
+        let url = scarperItem.url
+        try {
+            const content = await fetchContentViaPuppeteer(url, item.configuration)
+            if (content) {
+                console.log("processScarperItem save content " + url)
+                const contentDTO = new ContentDTO(
+                    item.configuration.id,
+                    -1,
+                    -1,
+                    scarperItem.id,
+                    scarperItem.timestamp,
+                    getUnixTime(new Date()),
+                    ContentStatus.done,
+                    content,
+                    url,
+                    (item.isGoogleNews ? url : ""),
+                    [],
+                    0,
+                    0)
+                if (item.isRetry) {
+                    await this.contentService.insertAfterRetryAndSuccess(contentDTO)
+                } else {
+                    await this.contentService.insert(contentDTO)
+                }
+            }
+        } catch (error: any) {
+            const contentDTO = new ContentDTO(
+                item.configuration.id,
+                -1,
+                -1,
+                scarperItem.id,
+                -1,
+                getUnixTime(new Date()),
+                ContentStatus.error,
+                "",
+                url,
+                (item.isGoogleNews ? url : ""),
                 [error],
                 1,
                 nextRetryDateFromNowPlusRandom(1))

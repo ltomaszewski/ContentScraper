@@ -1,6 +1,6 @@
 import { ContentLinkConfiguration } from "../../entities/ContentLinkConfiguration";
 import { extractDataFromURLViaPuppeteer } from "../../helpers/WebSiteDataExtracter";
-import { News } from "../NewsAggregatorDatabase";
+import { News, ScraperItem } from "../NewsAggregatorDatabase";
 
 export function chunkArray(array: any[], chunkSize: number): any[][] {
     const chunks = [];
@@ -21,6 +21,16 @@ export function findConfigurationfor(news: News, isGoogleNews: boolean, configur
                 if (news.link.startsWith(urlPrefix)) {
                     return configuration
                 }
+            }
+        }
+    }
+}
+
+export function findConfigurationWithScarperItem(scarperItem: ScraperItem, configurations: ContentLinkConfiguration[]): ContentLinkConfiguration | undefined {
+    for (const configuration of configurations) {
+        for (const urlPrefix of configuration.urlPrefixs) {
+            if (scarperItem.url.startsWith(urlPrefix)) {
+                return configuration
             }
         }
     }
