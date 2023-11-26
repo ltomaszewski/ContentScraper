@@ -4,6 +4,7 @@ export class ContentDTO {
     readonly id_configuration: number;
     readonly relatedNewsId: number;
     readonly relatedTweetId: number;
+    readonly relatedScraperItemId: number;
     readonly relatedCreateAt: number;
     readonly fetchedAt: number;
     readonly status: ContentStatus;
@@ -18,6 +19,7 @@ export class ContentDTO {
         relatedNewsId: number,
         relatedTweetId: number,
         relatedCreateAt: number,
+        relatedScraperItemId: number,
         fetchedAt: number,
         status: ContentStatus,
         content: string,
@@ -29,6 +31,7 @@ export class ContentDTO {
         this.id_configuration = id_configuration;
         this.relatedNewsId = relatedNewsId;
         this.relatedTweetId = relatedTweetId;
+        this.relatedScraperItemId = relatedScraperItemId;
         this.relatedCreateAt = relatedCreateAt;
         this.fetchedAt = fetchedAt;
         this.status = status;
@@ -44,6 +47,7 @@ export class ContentDTO {
         const id_configuration = obj.id_configuration;
         const relatedNewsId = obj.relatedNewsId;
         const relatedTweetId = obj.relatedTweetId;
+        const relatedScraperItemId = obj.relatedScraperItemId;
         const relatedCreateAt = obj.relatedCreateAt;
         const fetchedAt = obj.fetchedAt;
         const status = obj.status;
@@ -57,6 +61,7 @@ export class ContentDTO {
             id_configuration,
             relatedNewsId,
             relatedTweetId,
+            relatedScraperItemId,
             relatedCreateAt,
             fetchedAt,
             status,

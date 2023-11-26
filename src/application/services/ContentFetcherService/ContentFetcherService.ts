@@ -130,7 +130,7 @@ export class ContentFetcherService {
                     return false;
                 }
                 console.log("Added tweet to queue " + extractedLinks)
-                const contentRequest = new ContentRequest(undefined, tweet, matchedWithConfiguration, false, extractedLinks, false)
+                const contentRequest = new ContentRequest(undefined, tweet, undefined, matchedWithConfiguration, false, extractedLinks, false)
                 this.queue.push(contentRequest)
             }
         } else {

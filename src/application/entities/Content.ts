@@ -9,6 +9,7 @@ export class Content {
             id_configuration: 'id_configuration',
             relatedNewsId: 'relatedNewsId',
             relatedTweetId: 'relatedTweetId',
+            relatedScraperItemId: 'relatedScraperItemId',
             relatedCreateAt: 'relatedCreateAt',
             fetchedAt: 'fetchedAt',
             status: 'status',
@@ -24,6 +25,7 @@ export class Content {
     readonly id_configuration: number
     readonly relatedNewsId: number
     readonly relatedTweetId: number
+    readonly relatedScraperItemId: number
     readonly relatedCreateAt: number
     readonly fetchedAt: number
     readonly status: ContentStatus
@@ -39,6 +41,7 @@ export class Content {
         id_configuration: number,
         relatedNewsId: number,
         relatedTweetId: number,
+        relatedScraperItemId: number,
         relatedCreateAt: number,
         fetchedAt: number,
         status: ContentStatus,
@@ -53,6 +56,7 @@ export class Content {
         this.id_configuration = id_configuration;
         this.relatedNewsId = relatedNewsId;
         this.relatedTweetId = relatedTweetId;
+        this.relatedScraperItemId = relatedScraperItemId;
         this.relatedCreateAt = relatedCreateAt;
         this.fetchedAt = fetchedAt;
         this.status = status;
@@ -76,6 +80,7 @@ export class Content {
             this.id_configuration,
             this.relatedNewsId,
             this.relatedTweetId,
+            this.relatedScraperItemId,
             this.relatedCreateAt,
             this.fetchedAt,
             ContentStatus.error,
@@ -84,7 +89,8 @@ export class Content {
             this.url,
             this.errors,
             newRetryCounter,
-            nextRetryDateFromNowPlusRandom(newRetryCounter));
+            nextRetryDateFromNowPlusRandom(newRetryCounter)
+        );
     }
 
     createUpdatedMarkStatusRetry(): Content {
@@ -93,6 +99,7 @@ export class Content {
             this.id_configuration,
             this.relatedNewsId,
             this.relatedTweetId,
+            this.relatedScraperItemId,
             this.relatedCreateAt,
             this.fetchedAt,
             ContentStatus.retry,
@@ -101,7 +108,8 @@ export class Content {
             this.url,
             this.errors,
             this.retryCounter,
-            this.nextRetryAt);
+            this.nextRetryAt
+        );
     }
 
     static createFromObject(obj: any): Content {
@@ -109,6 +117,7 @@ export class Content {
         const id_configuration = obj.id_configuration;
         const relatedNewsId = obj.relatedNewsId;
         const relatedTweetId = obj.relatedTweetId;
+        const relatedScraperItemId = obj.relatedScraperItemId
         const relatedCreateAt = obj.relatedCreateAt;
         const fetchedAt = obj.fetchedAt;
         const status = obj.status;
@@ -118,11 +127,11 @@ export class Content {
         const errors = obj.errors;
         const retryCounter = obj.retryCounter;
         const nextRetryAt = obj.nextRetryAt;
-        return new Content(id, id_configuration, relatedNewsId, relatedTweetId, relatedCreateAt, fetchedAt, status, content, baseUrl, url, errors, retryCounter, nextRetryAt);
+        return new Content(id, id_configuration, relatedNewsId, relatedTweetId, relatedScraperItemId, relatedCreateAt, fetchedAt, status, content, baseUrl, url, errors, retryCounter, nextRetryAt);
     }
 
     static createFromDTO(dto: ContentDTO, newId: number): Content {
-        return new Content(newId, dto.id_configuration, dto.relatedNewsId, dto.relatedTweetId, dto.relatedCreateAt, dto.fetchedAt, dto.status, dto.content, dto.baseUrl, dto.url, dto.errors, dto.retryCounter, dto.nextRetryAt);
+        return new Content(newId, dto.id_configuration, dto.relatedNewsId, dto.relatedTweetId, dto.relatedScraperItemId, dto.relatedCreateAt, dto.fetchedAt, dto.status, dto.content, dto.baseUrl, dto.url, dto.errors, dto.retryCounter, dto.nextRetryAt);
     }
 }
 
