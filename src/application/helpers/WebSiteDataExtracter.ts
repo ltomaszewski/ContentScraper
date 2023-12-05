@@ -14,37 +14,39 @@ export async function extractDataFromURLViaPuppeteer(url: string, xpaths: string
 
     const page = await browser.newPage();
     page.setJavaScriptEnabled(false)
-    await page.goto(url)
+    try {
+        await page.goto(url)
 
-    let selectedContent: Array<ElementHandle<Node>> = [];
-    let xPathIndex = 0
-    while (selectedContent.length == 0) {
-        const xPath = xpaths[xPathIndex]
-        selectedContent = await page.$x(xPath);
-        xPathIndex = xPathIndex + 1
-    }
-
-    if (selectedContent.length > 0) {
-        // Get the text content of the selected element
-        const innerHTML = await page.evaluate((element) => {
-            for (const script of document.body.querySelectorAll('script')) script.remove();
-            for (const script of document.body.querySelectorAll('style')) script.remove();
-            // Cast the Node to HTMLElement to access innerHTML property
-            const htmlElement = element as HTMLElement;
-            return htmlElement.innerHTML;
-        }, selectedContent[0]);
-
-        if (innerHTML) {
-            await browser.close();
-            console.log("extractDataFromURLViaPuppeteer done with content" + url)
-            return removeJavaScriptHTMLAndWhitespace(sanitizeHtml(innerHTML))
+        let selectedContent: Array<ElementHandle<Node>> = [];
+        let xPathIndex = 0
+        while (selectedContent.length == 0) {
+            const xPath = xpaths[xPathIndex]
+            selectedContent = await page.$x(xPath);
+            xPathIndex = xPathIndex + 1
         }
+
+        if (selectedContent.length > 0) {
+            // Get the text content of the selected element
+            const innerHTML = await page.evaluate((element) => {
+                for (const script of document.body.querySelectorAll('script')) script.remove();
+                for (const script of document.body.querySelectorAll('style')) script.remove();
+                // Cast the Node to HTMLElement to access innerHTML property
+                const htmlElement = element as HTMLElement;
+                return htmlElement.innerHTML;
+            }, selectedContent[0]);
+
+            if (innerHTML) {
+                console.log("extractDataFromURLViaPuppeteer done with content" + url)
+                return removeJavaScriptHTMLAndWhitespace(sanitizeHtml(innerHTML))
+            }
+        } else {
+            console.log("extractDataFromURLViaPuppeteer xpaths did not found content" + url)
+            let source = await page.content();
+            return sanitizeHtml(source)
+        }
+    } finally {
+        await page.close();
         await browser.close();
-    } else {
-        console.log("extractDataFromURLViaPuppeteer xpaths did not found content" + url)
-        await browser.close();
-        let source = await page.content();
-        return sanitizeHtml(source)
     }
 }
 
